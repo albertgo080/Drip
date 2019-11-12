@@ -63,3 +63,5 @@ sudo ./TX_Demo -v -a1 -r2 -i1000 -t0 -c1 -f434 -m250
 # Note on Arduino Install
 
 Not explicit in README, but to include the driver library for arduino, navigate to `~/Arduino/libraries` and make a folder `CC1100`.  Copy in the `cc1100_arduino.*` files, and you should be good to go with the rest of the README.
+
+Also, for flashing the EEPROM (you shouldn't have to do unless using new Arduino now), on linux the Arduino IDE puts the `.eep` file the README asks about in the `/tmp/` folder.
