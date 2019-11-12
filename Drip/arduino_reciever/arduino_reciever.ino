@@ -11,6 +11,8 @@
 #include <avr/sleep.h>
 #include <cc1100_arduino.h>
 #include <EnableInterrupt.h>
+#include <Servo.h>
+
 
 //---------------------------=[Global variables]=----------------------------
 volatile int sleep_enable = 0;
@@ -28,13 +30,15 @@ volatile uint8_t cc1101_packet_available;
 //--------------------------[class constructors]-----------------------------
 //init CC1100 constructor
 CC1100 cc1100;
-
+Servo valve;
+int valve_pos=0;
+int servo_pin=9;
 //---------------------------------[SETUP]-----------------------------------
 void setup() 
 {
   // init serial Port for debugging
   Serial.begin(115200);Serial.println();
-  
+  valve.attach(servo_pin);
   // init CC1101 RF-module and get My_address from EEPROM
   cc1100.begin(My_addr);                   //inits RF module with main default settings
   
@@ -43,7 +47,7 @@ void setup()
   cc1100.set_mode(0x04);                   //set modulation mode 1 = GFSK_1_2_kb; 2 = GFSK_38_4_kb; 3 = GFSK_100_kb; 4 = MSK_250_kb; 5 = MSK_500_kb; 6 = OOK_4_8_kb
   cc1100.set_ISM(0x02);                    //set ISM Band 1=315MHz; 2=433MHz; 3=868MHz; 4=915MHz
   cc1100.set_channel(0x01);                //set channel
-  cc1100.set_output_power_level(0);        //set PA level in dbm
+  cc1100.set_output_power_level(10);        //set PA level in dbm
   cc1100.set_myaddr(0x02);                 //set my own address
   
   //cc1100.spi_write_register(IOCFG0, 0x24); //set module in sync mode detection mode
@@ -56,13 +60,19 @@ void setup()
   
   // init interrrupt function for available packet
   enableInterrupt(GDO2, rf_available_int, RISING); 
-  
+  //delay(10000);
   Serial.println(F("CC1101 RX Demo"));   //welcome message
+
 }
 
 //---------------------------------[LOOP]-----------------------------------
 void loop() 
 { 
+  //sweep(0,180);
+  //delay(1000);
+  //sweep(180,0);
+  //delay(1000);
+
   //if valid package is received
   if(cc1101_packet_available == TRUE){
     //rf_timecode = ((uint32_t)Rx_fifo[3] << 24) + 
@@ -72,14 +82,29 @@ void loop()
     //Serial.print(F("TX_Timecode: "));Serial.print(rf_timecode);Serial.println(F("ms\n"));
     int command=(uint32_t)Rx_fifo[3];//either a one or a two. one means turn off, two means turn on
     ///DO SERVO THINGS
+ 
     if (command==1){
+        disableInterrupt(GDO2);
+        delay(100);
       Serial.println("turning off!");
+      valve_pos=sweep(valve_pos,45);
+      //valve.write(100);
+      //delay(1000);
+        enableInterrupt(GDO2, rf_available_int, RISING); 
+
       //move servo to off position
     }else if (command==2){
+        disableInterrupt(GDO2);
+      delay(100);
       Serial.println("turning on!");
+      valve_pos=sweep(valve_pos,135);
+      //valve.write(0);
+      //delay(1000);
+        enableInterrupt(GDO2, rf_available_int, RISING); 
+
+      //valve_pos=sweep(valve_pos,100);
       //move servo to on position
     }
-
     
     rf_timecode_backup = millis();
     cc1101_packet_available = FALSE;
@@ -131,3 +156,20 @@ void rf_available_int(void)
   
   enableInterrupt(GDO2, rf_available_int, RISING); 
 }
+int sweep(int old_pos, int new_pos){
+  if (new_pos>old_pos){
+    for (int pos=old_pos; pos<=new_pos; pos+=1){
+    Serial.println(pos);
+      valve.write(pos);
+      delay(15);
+  }
+  }else{
+    for (int pos=old_pos; pos>=new_pos; pos-=1){
+    Serial.println(pos);
+      valve.write(pos);
+      delay(15);
+  }
+  }
+  return(new_pos);
+}
+
