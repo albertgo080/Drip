@@ -44,7 +44,7 @@ void setup()
   cc1100.set_ISM(0x02);                    //set ISM Band 1=315MHz; 2=433MHz; 3=868MHz; 4=915MHz
   cc1100.set_channel(0x01);                //set channel
   cc1100.set_output_power_level(0);        //set PA level in dbm
-  cc1100.set_myaddr(0x03);                 //set my own address
+  cc1100.set_myaddr(0x02);                 //set my own address
   
   //cc1100.spi_write_register(IOCFG0, 0x24); //set module in sync mode detection mode
   cc1100.spi_write_register(IOCFG2,0x06);
