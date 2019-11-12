@@ -51,8 +51,8 @@ class Drip():
 
 		#### VARIABLES - SHOULD BE CHANGED ######
 		#### VARIABLES REGARDING RELAY DEVICE ###
-		self.off_interval       = 4 #seconds. modulate pump 3 seconds off, 1 second on
-		self.on_interval        = 1 #seconds. modulate pump 3 seconds off, 1 second on
+		self.off_interval       = 4*60 #seconds. modulate pump 3 seconds off, 1 second on
+		self.on_interval        = 1*60 #seconds. modulate pump 3 seconds off, 1 second on
 		self.num_pump_intervals = 2 #of times modulate_pump function will turn pump on an off. may need to be variable going forward.
 		self.check_interval     = 5 #minutes. how often the script will check the current temperature and decide whether or not to modulate the pump.
 		self.threshold_temp     = 32 #degrees. threshold below which we start drip system
