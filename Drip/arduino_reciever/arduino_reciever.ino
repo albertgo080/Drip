@@ -18,6 +18,8 @@
 volatile int sleep_enable = 0;
 uint32_t rf_timecode = 0;
 uint32_t rf_timecode_backup = 0;
+
+
 //--------------------------[Global Task variables]--------------------------
 
 //--------------------------[Global CC1100 variables]------------------------
@@ -33,10 +35,17 @@ CC1100 cc1100;
 Servo valve;
 int valve_pos=0;
 int servo_pin=9;
+int green_pin=8;
+int blue_pin=7;
 //---------------------------------[SETUP]-----------------------------------
 void setup() 
 {
   // init serial Port for debugging
+  pinMode(green_pin,OUTPUT);
+  pinMode(blue_pin,OUTPUT);
+  digitalWrite(blue_pin,LOW);
+  digitalWrite(green_pin,LOW);
+  
   Serial.begin(115200);Serial.println();
   valve.attach(servo_pin);
   // init CC1101 RF-module and get My_address from EEPROM
@@ -84,6 +93,7 @@ void loop()
     ///DO SERVO THINGS
  
     if (command==1){
+      blue_on();
         disableInterrupt(GDO2);
         delay(100);
       Serial.println("turning off!");
@@ -94,6 +104,7 @@ void loop()
 
       //move servo to off position
     }else if (command==2){
+      green_on();
         disableInterrupt(GDO2);
       delay(100);
       Serial.println("turning on!");
@@ -171,5 +182,14 @@ int sweep(int old_pos, int new_pos){
   }
   }
   return(new_pos);
+}
+
+void green_on(){
+  digitalWrite(green_pin,HIGH);
+  digitalWrite(blue_pin,LOW);
+}
+void blue_on(){
+  digitalWrite(green_pin,LOW);
+  digitalWrite(blue_pin,HIGH);
 }
 
