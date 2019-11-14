@@ -27,6 +27,7 @@ class Drip():
 		#Establishing and calling callback functions for when messages from different topics are received
 		self.mqttClient.message_callback_add('Drip/location',self.on_message_location)
 		self.mqttClient.message_callback_add('Drip/startup',self.on_message_startup)
+		self.mqttClient.message_callback_add('Drip/manual',self.on_message_manual)
 		self.mqttClient.on_message = self.on_message
 
 		#Subscribe to everything that starts with Drip/
@@ -39,9 +40,9 @@ class Drip():
 		
 		#Defining global variables that the app subscribes to - THESE ARE DUMMY VARIABLES
 		self.temperature = [50,0]
-		self.state       = 1
+		self.state       = 0
 		self.battery     = 90
-		self.danger      = 'Moderate'
+		self.danger      = 'None'
 
 		#Defining whether or not setup has been completed
 		self.setup = False
@@ -52,8 +53,8 @@ class Drip():
 
 		#### VARIABLES - SHOULD BE CHANGED ######
 		#### VARIABLES REGARDING RELAY DEVICE ###
-		self.off_interval       = 4*60 #seconds. modulate pump 3 seconds off, 1 second on
-		self.on_interval        = 1*60 #seconds. modulate pump 3 seconds off, 1 second on
+		self.off_interval       = 4 #seconds. modulate pump 3 seconds off, 1 second on
+		self.on_interval        = 4 #seconds. modulate pump 3 seconds off, 1 second on
 		self.num_pump_intervals = 2 #of times modulate_pump function will turn pump on an off. 
 		self.check_interval     = 1 #minutes. how often the script will check the current temperature and decide whether or not to modulate the pump.
 		self.threshold_temp     = 32 #degrees. threshold below which we start drip system
@@ -101,7 +102,7 @@ class Drip():
 		self.longitude = location[1]
 
 		self.temperature=self.get_weather_data()
-		print(self.temperature)
+		print(self.temperature[0])
 		
 	def on_message_startup(self, client, userdata, msg):
 		'''
@@ -115,6 +116,18 @@ class Drip():
 		client.publish("Drip/Battery", "Bat,{}".format(self.battery))
 		client.publish("Drip/Danger", "Danger,{}".format(self.danger))
 		self.setup = True
+
+	def on_message_manual(self, client, userdata, msg):
+		'''
+		Callback function for Drip/manual topic
+		Sets the self.manual variabl as true and thus opens the valve
+		'''
+		message = msg.payload.decode(encoding='UTF-8')
+		if message == "on":
+			self.manual = True
+		else:
+			self.manual = False
+		print("Manual Settings:", self.manual)
 	
 	def get_weather_data(self):
 		'''
@@ -155,26 +168,32 @@ class Drip():
 
 	def pump_on(self, pin):
 		GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led off
-		os.system('./test_code_rf/CC1101/raspi/TX_Go -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
+		#os.system('./test_code_rf/CC1101/raspi/TX_Go -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
 		GPIO.output(pin, GPIO.HIGH) #turn pump on
 		#GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led on
 		print("Pump on")
+		return
     
 	def pump_off(self, pin):
 		GPIO.output(self.ledGreen, GPIO.LOW) #turn green led off
-		os.system('./test_code_rf/CC1101/raspi/TX_Stop -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
+		#os.system('./test_code_rf/CC1101/raspi/TX_Stop -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
 		GPIO.output(pin, GPIO.LOW)
 		print("Pump off")
+		return
 		
 	    
 	def modulate_pump(self):
 		for i in range(self.num_pump_intervals):
 			time_cycled = time.time()
 			self.pump_on(self.channel)
-			time.sleep(self.on_interval)
+			while self.on_interval - ((time.time() - time_cycled)) > 0 and not self.manual:
+				pass
+			time_cycled2 = time.time()
 			self.pump_off(self.channel)
-			time.sleep(self.off_interval)
+			while self.on_interval - ((time.time() - time_cycled2)) > 0 and not self.manual:
+				pass
 		print("number of intervals completed: ", self.num_pump_intervals)
+		return
 
 	def on_off_threshold(self):
 		if self.temperature[0] > self.threshold_temp:
@@ -186,14 +205,20 @@ class Drip():
 	def run_cycle(self):
 		while True:
 			print("While True")
-			self.on_off_threshold()
+			if self.manual:
+				self.pump_on(self.channel)
+				self.state = 1
+				self.danger = "Moderate"
+				print("manual on")
+			else:
+				self.on_off_threshold()
 			try:
 				self.temperature=self.get_weather_data()
 			except:
 				pass
 			starttime = time.time()
 			#The code sleeps/pauses until a minute has passed by
-			while 5*self.check_interval - ((time.time() - starttime)) > 0:
+			while 5*self.check_interval - ((time.time() - starttime)) > 0 and not self.manual:
 				pass
 				
 
