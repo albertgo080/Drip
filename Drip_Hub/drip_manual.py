@@ -49,7 +49,7 @@ class Drip():
 
 		#Defining GPIO pin for the relay
 		self.channel  = 17
-		self.ledGreen = 19
+		self.ledGreen = 16
 
 		#### VARIABLES - SHOULD BE CHANGED ######
 		#### VARIABLES REGARDING RELAY DEVICE ###
@@ -167,17 +167,18 @@ class Drip():
 		return temps
 
 	def pump_on(self, pin):
-		GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led off
-		#os.system('./test_code_rf/CC1101/raspi/TX_Go -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
+		#GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led off
+		os.system('./test_code_rf/CC1101/raspi/TX_Go -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
 		GPIO.output(pin, GPIO.HIGH) #turn pump on
-		#GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led on
+		GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led on
 		print("Pump on")
 		return
     
 	def pump_off(self, pin):
-		GPIO.output(self.ledGreen, GPIO.LOW) #turn green led off
-		#os.system('./test_code_rf/CC1101/raspi/TX_Stop -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
+		#GPIO.output(self.ledGreen, GPIO.LOW) #turn green led off
+		os.system('./test_code_rf/CC1101/raspi/TX_Stop -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
 		GPIO.output(pin, GPIO.LOW)
+		GPIO.output(self.ledGreen, GPIO.LOW) #turn green led off
 		print("Pump off")
 		return
 		
