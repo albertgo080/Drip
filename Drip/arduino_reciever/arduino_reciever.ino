@@ -43,7 +43,7 @@ void setup()
   // init serial Port for debugging
   pinMode(green_pin,OUTPUT);
   pinMode(blue_pin,OUTPUT);
-  digitalWrite(blue_pin,LOW);
+  digitalWrite(blue_pin,HIGH);
   digitalWrite(green_pin,LOW);
   
   Serial.begin(115200);Serial.println();
@@ -71,7 +71,7 @@ void setup()
   enableInterrupt(GDO2, rf_available_int, RISING); 
   //delay(10000);
   Serial.println(F("CC1101 RX Demo"));   //welcome message
-
+  valve.write(0);
 }
 
 //---------------------------------[LOOP]-----------------------------------
@@ -97,7 +97,7 @@ void loop()
         disableInterrupt(GDO2);
         delay(100);
       Serial.println("turning off!");
-      valve_pos=sweep(valve_pos,45);
+      valve_pos=sweep(valve_pos,60);
       //valve.write(100);
       //delay(1000);
         enableInterrupt(GDO2, rf_available_int, RISING); 
@@ -108,7 +108,7 @@ void loop()
         disableInterrupt(GDO2);
       delay(100);
       Serial.println("turning on!");
-      valve_pos=sweep(valve_pos,135);
+      valve_pos=sweep(valve_pos,0);
       //valve.write(0);
       //delay(1000);
         enableInterrupt(GDO2, rf_available_int, RISING); 
@@ -186,10 +186,10 @@ int sweep(int old_pos, int new_pos){
 
 void green_on(){
   digitalWrite(green_pin,HIGH);
-  digitalWrite(blue_pin,LOW);
+  //digitalWrite(blue_pin,LOW);
 }
 void blue_on(){
   digitalWrite(green_pin,LOW);
-  digitalWrite(blue_pin,HIGH);
+  //digitalWrite(blue_pin,HIGH);
 }
 
