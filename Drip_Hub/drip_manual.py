@@ -47,13 +47,13 @@ class DripHub():
         # Create Pump object
         self.pump = Pump(self.pump_channel)
 
-    def pump_on(self, pin):
+    def pump_on(self):
         GPIO.output(self.led_green, GPIO.HIGH) #turn green led on
         self.pump.pump_on()
         logger.debug("Pump and LED on")
         return
     
-    def pump_off(self, pin):
+    def pump_off(self):
         self.pump.pump_off()
         GPIO.output(self.led_green, GPIO.LOW) #turn green led off
         logger.debug("Pump and LED off")
@@ -62,11 +62,11 @@ class DripHub():
     def modulate_pump(self):
         for i in range(self.num_pump_intervals):
             time_cycled = time.time()
-            self.pump.pump_on()
+            self.pump_on()
             while self.on_interval - ((time.time() - time_cycled)) > 0 and not self.client.manual:
                 pass
             time_cycled2 = time.time()
-            self.pump.pump_off()
+            self.pump_off()
             while self.on_interval - ((time.time() - time_cycled2)) > 0 and not self.client.manual:
                 pass
         logger.debug("number of intervals completed: %i", self.num_pump_intervals)
@@ -74,7 +74,7 @@ class DripHub():
 
     def on_off_threshold(self):
         if self.client.temperature[0] > self.threshold_temp:
-            self.pump.pump_off()
+            self.pump_off()
             logger.debug("No freezing")
         else:
             return self.modulate_pump()
@@ -82,7 +82,7 @@ class DripHub():
     def run_cycle(self):
         logger.debug("In run_cycle")
         if self.client.manual:
-            self.pump.pump_on()
+            self.pump_on()
             self.client.state = 1
             self.client.danger = "Moderate"
             logger.debug("manual on")
