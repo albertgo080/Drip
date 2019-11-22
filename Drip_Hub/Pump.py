@@ -29,3 +29,6 @@ class Pump():
         self.pump_status = False
         logging.debug("Pump off")
         return
+
+if __name__ == "__main__":
+    pump = Pump(17)

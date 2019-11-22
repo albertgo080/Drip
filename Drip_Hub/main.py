@@ -93,10 +93,13 @@ class DripHub():
         except:
             pass
         starttime = time.time()
+        logger.debug("Start time: %f", starttime)
 
         # The code sleeps/pauses until a minute has passed by
         while 5*self.check_interval - ((time.time() - starttime)) > 0 and not self.client.manual:
             pass
+
+        logger.debug("After waiting for check interval: %f, diff: %f", time.time(), time.time()-starttime)
                 
 
 # def main():
@@ -108,11 +111,11 @@ class DripHub():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Run the drip systems")
-    parser.add_argument('off_interval', default=4, type=float, help='seconds that pump modulates off')
-    parser.add_argument('on_interval', default=4, type=float, help='seconds that pump modulates on')
-    parser.add_argument('num_intervals', default=2, type=int, help='Number of times pump modulates off')
-    parser.add_argument('check_interval', default=1, type=float, help='How often in minutes hub checks for new temperatures')
-    parser.add_argument('threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which drip starts')
+    parser.add_argument('--off_interval', default=4, type=float, help='seconds that pump modulates off')
+    parser.add_argument('--on_interval', default=4, type=float, help='seconds that pump modulates on')
+    parser.add_argument('--num_intervals', default=2, type=int, help='Number of times pump modulates off')
+    parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
+    parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which drip starts')
 
     args = parser.parse_args()
 
@@ -121,15 +124,16 @@ if __name__ == '__main__':
 
     Hub = DripHub("Drip", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
     
-    # run drip until it is interrupted
+    # run drip until it is interrupted once server is setup
     try:
-        while True:
+        while Hub.client.setup:
             Hub.run_cycle()
     except KeyboardInterrupt:
         pass
 
-    # turn off pump before exiting
+    # turn off pump before exiting and clear raspi pin outs
     Hub.pump_off()
+    GPIO.cleanup()
 
     logger.debug("Exited cleanly")
 
