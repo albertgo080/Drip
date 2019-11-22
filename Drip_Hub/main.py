@@ -126,8 +126,9 @@ if __name__ == '__main__':
     
     # run drip until it is interrupted once server is setup
     try:
-        while Hub.client.setup:
-            Hub.run_cycle()
+        while True:
+            if Hub.client.setup:
+                Hub.run_cycle()
     except KeyboardInterrupt:
         pass
 
