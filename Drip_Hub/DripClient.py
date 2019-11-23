@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 # Author: MIT 2.009 Purple Team
 # Date: November 11, 2019
-
+from __future__ import print_function
 import paho.mqtt.client as mqtt
 import RPi.GPIO as GPIO
 import time
@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 import json
 import netifaces as ni
 
-from __future__ import print_function
 import sys
 import ssl
 import datetime
@@ -31,13 +30,13 @@ class DripClient():
     '''
     def __init__(self, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0):
         #constants for server connection
-        IoT_protocol_name = "Triton"
-        aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
-        url = "https://{}".format(aws_iot_endpoint)
+        self.IoT_protocol_name = "Triton"
+        self.aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
+        self.url = "https://{}".format(self.aws_iot_endpoint)
 
-        ca = "/usr/local/share/ca-certificates/aws3.crt"
-        private = "/home/purple/26b644023d-private.pem.key"
-        cert = "/home/purple/26b644023d-certificate.pem.crt"
+        self.ca = "/usr/local/share/ca-certificates/aws3.crt"
+        self.private = "/home/purple/26b644023d-private.pem.key"
+        self.cert = "/home/purple/26b644023d-certificate.pem.crt"
         #end aws server constants
 
         # define script name for when it appears on server
@@ -51,20 +50,21 @@ class DripClient():
         self.mqtt_client = mqtt.Client(self.client_name)
 
         #more aws setup
-        ssl_context= self.ssl_alpn()
-        mqttc.tls_set_context(context=ssl_context)
+        self.ssl_context= self.ssl_alpn()
+        self.mqtt_client.tls_set_context(context=self.ssl_context)
 
         # Callback function is called when script is connected to mqtt server
         self.mqtt_client.on_connect = self.on_connect
 
         # Establishing and calling callback functions for when messages from different topics are received
         self.mqtt_client.message_callback_add(self.client_name + '/location', self.on_message_location)
+        print (self.client_name+'/location')
         self.mqtt_client.message_callback_add(self.client_name + '/startup', self.on_message_startup)
         self.mqtt_client.message_callback_add(self.client_name + '/manual', self.on_message_manual)
         self.mqtt_client.on_message = self.on_message
 
         # Subscribe to everything that starts with Client name
-        self.mqtt_client.connect(self.serverAddress)
+       # self.mqtt_client.connect(self.serverAddress)
         self.mqtt_client.subscribe(self.client_name+'/#')
 
         # Defining location variables
@@ -89,7 +89,7 @@ class DripClient():
         self.manual = False
 
         #connect to aws iot (DA CLOUD)
-        mqttc.connect(aws_iot_endpoint, port=8883)
+        self.mqtt_client.connect(self.aws_iot_endpoint, port=8883)
 
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
@@ -190,12 +190,12 @@ class DripClient():
         return temps
 
 
-    def ssl_alpn(): #aws helper function
+    def ssl_alpn(self): #aws helper function
 
         #debug print opnessl version
         #logger.info("open ssl version:{}".format(ssl.OPENSSL_VERSION))
         ssl_context = ssl.create_default_context()
-        ssl_context.set_alpn_protocols([IoT_protocol_name])
-        ssl_context.load_verify_locations(cafile=ca)
-        ssl_context.load_cert_chain(certfile=cert, keyfile=private)
+        ssl_context.set_alpn_protocols([self.IoT_protocol_name])
+        ssl_context.load_verify_locations(cafile=self.ca)
+        ssl_context.load_cert_chain(certfile=self.cert, keyfile=self.private)
         return  ssl_context
