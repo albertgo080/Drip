@@ -13,7 +13,12 @@ from bs4 import BeautifulSoup
 import json
 import netifaces as ni
 
-import logging
+from __future__ import print_function
+import sys
+import ssl
+import datetime
+import logging, traceback
+
 logger = logging.getLogger(__name__)
 
 class DripClient():
@@ -24,17 +29,30 @@ class DripClient():
         net_interface (string) - network interface to use (wifi vs ethernet), only tested on wifi now
         level1Temp, level2Temp, level3Temp (int) - the warning temperatures for this drip install
     '''
-    def __init__(self, client_name='Drip', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0):
-    
-        # define script name for when it appears on server  
-        self.client_name = client_name 
+    def __init__(self, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0):
+        #constants for server connection
+        IoT_protocol_name = "Triton"
+        aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
+        url = "https://{}".format(aws_iot_endpoint)
+
+        ca = "/usr/local/share/ca-certificates/aws3.crt"
+        private = "/home/purple/26b644023d-private.pem.key"
+        cert = "/home/purple/26b644023d-certificate.pem.crt"
+        #end aws server constants
+
+        # define script name for when it appears on server
+        self.client_name = client_name
 
         # define the address of the server
         self.net_interface = net_interface
-        self.serverAddress = ni.ifaddresses(self.net_interface)[ni.AF_INET][0]['addr'] 
-        
+        self.serverAddress = ni.ifaddresses(self.net_interface)[ni.AF_INET][0]['addr']
+
         # define the client
         self.mqtt_client = mqtt.Client(self.client_name)
+
+        #more aws setup
+        ssl_context= self.ssl_alpn()
+        mqttc.tls_set_context(context=ssl_context)
 
         # Callback function is called when script is connected to mqtt server
         self.mqtt_client.on_connect = self.on_connect
@@ -52,7 +70,7 @@ class DripClient():
         # Defining location variables
         self.latitude  = None
         self.longitude = None
-        
+
         # Defining variables that the app subscribes to - THESE ARE DUMMY VARIABLES
         self.temperature = [50,0]
         self.state       = 0
@@ -70,16 +88,19 @@ class DripClient():
         # Tells if drip was manually set to be on
         self.manual = False
 
+        #connect to aws iot (DA CLOUD)
+        mqttc.connect(aws_iot_endpoint, port=8883)
+
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
-    
+
     def on_connect(self, client, userdata, flags, rc):
         '''
         Callback function for when the script is connected to the server
         Prints connected to verify
         '''
         logger.info("Connected to server")
-        
+
     def on_message(self, client, userdata, msg):
         '''
         Prints message for any message not received through Drip/ topics
@@ -102,7 +123,7 @@ class DripClient():
 
         self.temperature = self.get_weather_data()
         logger.debug("Temperature: %f", self.temperature[0])
-        
+
     def on_message_startup(self, client, userdata, msg):
         '''
         Callback function for Drip/startup topic
@@ -127,7 +148,7 @@ class DripClient():
         else:
             self.manual = False
         logger.debug("Manual Settings: %d", self.manual)
-    
+
     def get_weather_data(self):
         '''
         Gets weather data from the location specified by latittude and longitude
@@ -163,8 +184,18 @@ class DripClient():
         elif current_temp < self.level2Temp:
             self.state = 2
             self.danger = "Moderate"
-        elif current_temp < self.level3Temp:		
+        elif current_temp < self.level3Temp:
             self.state = 3
             self.danger = "High"
         return temps
 
+
+    def ssl_alpn(): #aws helper function
+
+        #debug print opnessl version
+        #logger.info("open ssl version:{}".format(ssl.OPENSSL_VERSION))
+        ssl_context = ssl.create_default_context()
+        ssl_context.set_alpn_protocols([IoT_protocol_name])
+        ssl_context.load_verify_locations(cafile=ca)
+        ssl_context.load_cert_chain(certfile=cert, keyfile=private)
+        return  ssl_context
