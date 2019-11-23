@@ -17,25 +17,25 @@ import argparse
 import logging
 
 class DripHub():
-    def __init__(self, client_name="Drip", off_interval=4, \
+    def __init__(self, client_name="Triton", off_interval=4, \
                     on_interval=4, num_pump_intervals=2, check_interval=1, threshold_temp=32):
 
-         # ID of system as appears on server  
-        self.client_name = client_name 
-        
+         # ID of system as appears on server
+        self.client_name = client_name
+
         #### VARIABLES - SHOULD BE CHANGED ######
         #### VARIABLES REGARDING RELAY DEVICE ###
         self.off_interval       = off_interval # seconds. modulate pump 4 seconds off
         self.on_interval        = on_interval # seconds. modulate pump 4 seconds on
-        self.num_pump_intervals = num_pump_intervals # of times modulate_pump function will turn pump on an off. 
+        self.num_pump_intervals = num_pump_intervals # of times modulate_pump function will turn pump on an off.
         self.check_interval     = check_interval # minutes. how often the script will check the current temperature and decide whether or not to modulate the pump.
         self.threshold_temp     = threshold_temp #degrees. threshold below which we start drip system
-        
+
         self.pump_channel       = 17 # for pump relay
         self.led_green          = 16 # for status relay
 
         #########################################
-    
+
         # Set RPi GPIO pins to blink LED
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.led_green, GPIO.OUT)
@@ -52,13 +52,13 @@ class DripHub():
         self.pump.pump_on()
         logger.debug("Pump and LED on")
         return
-    
+
     def pump_off(self):
         self.pump.pump_off()
         GPIO.output(self.led_green, GPIO.LOW) #turn green led off
         logger.debug("Pump and LED off")
         return
-        
+
     def modulate_pump(self):
         for i in range(self.num_pump_intervals):
             time_cycled = time.time()
@@ -100,7 +100,7 @@ class DripHub():
             pass
 
         logger.debug("After waiting for check interval: %f, diff: %f", time.time(), time.time()-starttime)
-                
+
 
 # def main():
 #     '''
@@ -123,7 +123,7 @@ if __name__ == '__main__':
     logger = logging.getLogger(__name__)
 
     Hub = DripHub("Drip", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
-    
+
     # run drip until it is interrupted once server is setup
     try:
         while True:
@@ -137,6 +137,3 @@ if __name__ == '__main__':
     GPIO.cleanup()
 
     logger.debug("Exited cleanly")
-
-
-

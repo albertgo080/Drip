@@ -63,6 +63,9 @@ class DripClient():
         self.mqtt_client.message_callback_add(self.client_name + '/manual', self.on_message_manual)
         self.mqtt_client.on_message = self.on_message
 
+        #connect to aws iot (DA CLOUD)
+        self.mqtt_client.connect(self.aws_iot_endpoint, port=8883)
+
         # Subscribe to everything that starts with Client name
        # self.mqtt_client.connect(self.serverAddress)
         self.mqtt_client.subscribe(self.client_name+'/#')
@@ -87,9 +90,6 @@ class DripClient():
 
         # Tells if drip was manually set to be on
         self.manual = False
-
-        #connect to aws iot (DA CLOUD)
-        self.mqtt_client.connect(self.aws_iot_endpoint, port=8883)
 
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
