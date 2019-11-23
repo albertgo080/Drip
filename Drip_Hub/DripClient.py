@@ -120,7 +120,6 @@ class DripClient():
 
         self.latitude = location[0]
         self.longitude = location[1]
-
         self.temperature = self.get_weather_data()
         logger.debug("Temperature: %f", self.temperature[0])
 
@@ -143,6 +142,7 @@ class DripClient():
         Sets the self.manual variabl as true and thus opens the valve
         '''
         message = msg.payload.decode(encoding='UTF-8')
+        print (message)
         if message == "on":
             self.manual = True
         else:
