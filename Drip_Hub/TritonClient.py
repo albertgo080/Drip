@@ -154,6 +154,7 @@ class TritonClient():
         Gets weather data from the location specified by latittude and longitude
         Returns a list of temperatures fro the next 150 hours
         '''
+        print("here!")
         # define url that takes latitiude and longitude variables
         url = 'https://api.weather.gov/points/' + str(self.latitude) + ',' + str(self.longitude)
         initial = requests.get(url)
@@ -167,14 +168,16 @@ class TritonClient():
         html = BeautifulSoup(initial.content,features="html.parser")
         dict_one = json.loads(html.text)
         props = dict_one["properties"]
-
+    
+        #get temp data
         temps = [period["temperature"] for period in props["periods"]]
 
-        for period in props["periods"]:
-                temps.append(period["temperature"])
+        #now do wind speed
+        speeds = [period["windSpeed"] for period in props["periods"]]
 
         current_temp = temps[0]
-
+        current_wind_speed=speeds[0]
+        
         if current_temp > self.level1Temp:
             self.state = 0
             self.danger = "None"
