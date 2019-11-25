@@ -1,0 +1,40 @@
+HOW TO SETUP TRITON TO WORK ON BOOTUP
+
+in home directory from command line:
+$ touch triton
+$ vim triton
+add these lines:
+#!/bin/sh
+/home/<username>/python-wifi-connect/scripts/install.sh
+python3 /home/<username>/Drip/Drip_Hub/main.py
+
+
+
+in a terminal:
+$ chmod +x ./triton
+$ sudo -H pip3 install paho-mqtt
+this install mqtt for the root user so the system doesn't throw an error
+
+next, navigate to /etc/systemd/system
+$ sudo touch triton.service
+$ sudo vim triton.service
+add these lines between the ***:
+***
+[Unit]
+Description=Starts the triton system
+
+[Service]
+WorkingDirectory=/home/purple
+Type=simple
+ExecStart=/home/purple/triton
+
+[Install]
+WantedBy=multi-user.target
+***
+
+then run:
+$ sudo systemctl enable triton
+
+run systemctl stop triton or systemctl start triton to manually start and stop
+run systemctl status triton to check on status of the pi
+contact nic if there are any problems :o
