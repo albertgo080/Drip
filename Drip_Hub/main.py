@@ -7,7 +7,7 @@ import RPi.GPIO as GPIO
 import time
 import os
 from Pump import Pump
-from DripClient import DripClient
+from TritonClient import TritonClient
 
 import requests
 import json
@@ -16,7 +16,7 @@ import argparse
 
 import logging
 
-class DripHub():
+class TritonHub():
     def __init__(self, client_name="Triton", off_interval=4, \
                     on_interval=4, num_pump_intervals=2, check_interval=1, threshold_temp=32):
 
@@ -29,7 +29,7 @@ class DripHub():
         self.on_interval        = on_interval # seconds. modulate pump 4 seconds on
         self.num_pump_intervals = num_pump_intervals # of times modulate_pump function will turn pump on an off.
         self.check_interval     = check_interval # minutes. how often the script will check the current temperature and decide whether or not to modulate the pump.
-        self.threshold_temp     = threshold_temp #degrees. threshold below which we start drip system
+        self.threshold_temp     = threshold_temp #degrees. threshold below which we start Triton system
 
         self.pump_channel       = 17 # for pump relay
         self.led_green          = 16 # for status relay
@@ -42,7 +42,7 @@ class DripHub():
 
 
         # Create MQQT and weather object
-        self.client = DripClient(self.client_name)
+        self.client = TritonClient(self.client_name)
 
         # Create Pump object
         self.pump = Pump(self.pump_channel)
@@ -107,24 +107,24 @@ class DripHub():
 #     Main function that calls the class
 #     '''
 #     logger.info('In main')
-#     foo = DripHub()
+#     foo = vHub()
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Run the drip systems")
+    parser = argparse.ArgumentParser(description="Run the Triton systems")
     parser.add_argument('--off_interval', default=4, type=float, help='seconds that pump modulates off')
     parser.add_argument('--on_interval', default=4, type=float, help='seconds that pump modulates on')
     parser.add_argument('--num_intervals', default=2, type=int, help='Number of times pump modulates off')
     parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
-    parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which drip starts')
+    parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which Triton starts')
 
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
-    Hub = DripHub("Drip", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
+    Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
 
-    # run drip until it is interrupted once server is setup
+    # run Triton until it is interrupted once server is setup
     try:
         while True:
             if Hub.client.setup:

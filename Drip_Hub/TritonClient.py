@@ -20,13 +20,13 @@ import logging, traceback
 
 logger = logging.getLogger(__name__)
 
-class DripClient():
+class TritonClient():
     '''
     Initialize the MQTT server.
     Params:
-        client_name (string) - id of drip system on server
+        client_name (string) - id of Triton system on server
         net_interface (string) - network interface to use (wifi vs ethernet), only tested on wifi now
-        level1Temp, level2Temp, level3Temp (int) - the warning temperatures for this drip install
+        level1Temp, level2Temp, level3Temp (int) - the warning temperatures for this Triton install
     '''
     def __init__(self, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0):
         #constants for server connection
@@ -88,7 +88,7 @@ class DripClient():
         self.level2Temp = level2Temp
         self.level3Temp = level3Temp
 
-        # Tells if drip was manually set to be on
+        # Tells if Triton was manually set to be on
         self.manual = False
 
         # Causes mqtt to run continuously
@@ -103,14 +103,14 @@ class DripClient():
 
     def on_message(self, client, userdata, msg):
         '''
-        Prints message for any message not received through Drip/ topics
+        Prints message for any message not received through Triton/ topics
         '''
         message = msg.payload.decode(encoding='UTF-8')
         logger.debug(message)
 
     def on_message_location(self, client, userdata, msg):
         '''
-        Callback function for Drip/location topics
+        Callback function for Triton/location topics
         Gets the temperature based on the location that is specified
         '''
         message = msg.payload.decode(encoding='UTF-8')
@@ -125,12 +125,12 @@ class DripClient():
 
     def on_message_startup(self, client, userdata, msg):
         '''
-        Callback function for Drip/startup topic
+        Callback function for Triton/startup topic
         Publishes State, Temperature, Battery, and Danger information to the respective topics
-        This function is called everythime someone opens the Drip dashboard in the app
+        This function is called everythime someone opens the Triton dashboard in the app
         Also is called when someone hits the refresh button on the app
         '''
-        client.publish(self.client_name + "State", "State,{}".format(self.state))
+        client.publish(self.client_name + "/State", "State,{}".format(self.state))
         client.publish(self.client_name + "/Temperature","Temp,{}".format(self.temperature[0]))
         client.publish(self.client_name + "/Battery", "Bat,{}".format(self.battery))
         client.publish(self.client_name + "/Danger", "Danger,{}".format(self.danger))
@@ -138,7 +138,7 @@ class DripClient():
 
     def on_message_manual(self, client, userdata, msg):
         '''
-        Callback function for Drip/manual topic
+        Callback function for Triton/manual topic
         Sets the self.manual variabl as true and thus opens the valve
         '''
         message = msg.payload.decode(encoding='UTF-8')
