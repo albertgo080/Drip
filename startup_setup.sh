@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Keep track of user that called script for when using root commands
 export BASEUSR=$USER
@@ -6,7 +6,7 @@ export BASEUSR=$USER
 cd
 
 # Make Triton startup script
-echo "#!/bin/sh
+echo "#!/bin/bash
 /home/$BASEUSR/python-wifi-connect/scripts/run.sh
 /home/$BASEUSR/Drip/Drip_Hub/run.sh" > triton
 
@@ -19,6 +19,14 @@ echo 'Created hub start up script'
 # MQTT needs to be root to not throw errors
 # sudo -H pip3 install paho-mqtt
 
+# Make run file
+
+echo "#!/bin/bash
+source /home/$BASEUSR/Drip/drip_env/bin/activate
+python3 /home/$BASEUSR/Drip/Drip_Hub/main.py
+deactivate" > /home/$BASEUSR/Drip/Drip_Hub/run.sh
+
+chmod +x /home/$BASEUSR/Drip/Drip_Hub/run.sh
 
 # Make system start up file
 

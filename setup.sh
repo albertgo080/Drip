@@ -17,9 +17,9 @@ echo "Top dir: $TOPDIR"
 sudo apt install git python3-pip python3-venv libdbus-1-dev libglib2.0-dev virtualenv -y
 
 # Removing previous virtual env if it exists
-echo "Removing "rm -r $TOPDIR/drip_env""
+# echo "Removing "rm -r $TOPDIR/drip_env""
 
-#rm -rf $TOPDIR/drip_env
+# rm -rf $TOPDIR/drip_env
 
 echo 'Setting up virtual environment for Drip Hub'
 
