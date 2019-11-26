@@ -119,7 +119,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.ERROR)
     logger = logging.getLogger(__name__)
 
     Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)

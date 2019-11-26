@@ -45,6 +45,7 @@ class TritonClient():
         # define the address of the server
         self.net_interface = net_interface
         self.serverAddress = ni.ifaddresses(self.net_interface)[ni.AF_INET][0]['addr']
+        logger.debug("Server address: %s", self.serverAddress)
 
         # define the client
         self.mqtt_client = mqtt.Client(self.client_name)
@@ -58,7 +59,7 @@ class TritonClient():
 
         # Establishing and calling callback functions for when messages from different topics are received
         self.mqtt_client.message_callback_add(self.client_name + '/location', self.on_message_location)
-        print (self.client_name+'/location')
+        logger.debug("Location topic: %s", self.client_name+'/location')
         self.mqtt_client.message_callback_add(self.client_name + '/startup', self.on_message_startup)
         self.mqtt_client.message_callback_add(self.client_name + '/manual', self.on_message_manual)
         self.mqtt_client.on_message = self.on_message
@@ -120,7 +121,12 @@ class TritonClient():
 
         self.latitude = location[0]
         self.longitude = location[1]
-        self.temperature = self.get_weather_data()
+        logger.debug("Latitude: %s, Longitude: %s", self.latitude, self.longitude)
+        try:
+            self.temperature = self.get_weather_data()
+        except KeyError:
+            logger.error("Could not get weather data for given long/lat. Temp staying the same")
+
         logger.debug("Temperature: %f", self.temperature[0])
 
     def on_message_startup(self, client, userdata, msg):
@@ -154,20 +160,38 @@ class TritonClient():
         Gets weather data from the location specified by latittude and longitude
         Returns a list of temperatures fro the next 150 hours
         '''
-        print("here!")
+        logger.debug("Getting weather data!")
         # define url that takes latitiude and longitude variables
         url = 'https://api.weather.gov/points/' + str(self.latitude) + ',' + str(self.longitude)
         initial = requests.get(url)
         html = BeautifulSoup(initial.content,features="html.parser")
 
+        # Get new URL for weather at specific coordinates
         dict_one = json.loads(html.text)
-        url = dict_one["properties"]["forecastHourly"]
+        logger.debug("Dict one: %s",str(dict_one))
+        try:
+            url = dict_one["properties"]["forecastHourly"]
+            logger.debug("Url: %s", url)
+
+        except KeyError:
+            logger.error("Location given does produce dict with a 'properties key'")
+            err = KeyError("Location given does produce dict with a 'properties key'")
+            raise err
 
         # do again but with new url
         initial = requests.get(url)
         html = BeautifulSoup(initial.content,features="html.parser")
         dict_one = json.loads(html.text)
-        props = dict_one["properties"]
+        logger.debug("Dict one 2: %s", str(dict_one))
+        try:
+            props = dict_one["properties"]
+            logger.debug("Props: %s", str(props))
+        except KeyError:
+            logger.error("Location given does produce dict 2 with a 'properties key'")
+            err = KeyError("Location given does produce dict with a 'properties key'")
+            raise err
+
+        logger.debug("Successfully called weather API")
     
         #get temp data
         temps = [period["temperature"] for period in props["periods"]]
