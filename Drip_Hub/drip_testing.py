@@ -15,46 +15,48 @@ import netifaces as ni
 
 class Drip():
 	def __init__(self):
-
 		self.clientName    = "Drip" #Define the script's name for when it appears on the Server
-		ni.ifaddresses('wlan0')
-		self.serverAddress = ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr'] #Define the address of the server
-		self.mqttClient    = mqtt.Client(self.clientName) #Define the client
+		#ni.ifaddresses('wlan0')
+		#self.serverAddress = ni.ifaddresses('wlan0')[ni.AF_INET][0]['addr'] #Define the address of the server
+		#self.serverAddress="10.2.80.135"
+		#print(self.serverAddress)
+		#self.mqttClient    = mqtt.Client(self.clientName) #Define the client
 
 		#Callback function is called when script is connected to mqtt server
-		self.mqttClient.on_connect = self.on_connect
+		#self.mqttClient.on_connect = self.on_connect
 
 		#Establishing and calling callback functions for when messages from different topics are received
-		self.mqttClient.message_callback_add('Drip/location',self.on_message_location)
-		self.mqttClient.message_callback_add('Drip/startup',self.on_message_startup)
-		self.mqttClient.on_message = self.on_message
+		#self.mqttClient.message_callback_add('Drip/location',self.on_message_location)
+		#self.mqttClient.message_callback_add('Drip/startup',self.on_message_startup)
+		#self.mqttClient.message_callback_add('Drip/manual',self.on_message_manual)
+		#self.mqttClient.on_message = self.on_message
 
 		#Subscribe to everything that starts with Drip/
-		self.mqttClient.connect(self.serverAddress)
-		self.mqttClient.subscribe("Drip/#")
+		#self.mqttClient.connect(self.serverAddress)
+		#self.mqttClient.subscribe("Drip/#")
 
 		#Defining location variables
 		self.latitude  = None
 		self.longitude = None
 		
 		#Defining global variables that the app subscribes to - THESE ARE DUMMY VARIABLES
-		self.temperature = [50,0]
+		self.temperature = [20,0]
 		self.state       = 1
 		self.battery     = 90
-		self.danger      = 'Moderate'
+		self.danger      = 'None'
 
 		#Defining whether or not setup has been completed
 		self.setup = False
 
 		#Defining GPIO pin for the relay
 		self.channel  = 17
-		self.ledGreen = 19
+		self.ledGreen = 16
 
 		#### VARIABLES - SHOULD BE CHANGED ######
 		#### VARIABLES REGARDING RELAY DEVICE ###
-		self.off_interval       = 4*60 #seconds. modulate pump 3 seconds off, 1 second on
-		self.on_interval        = 1*60 #seconds. modulate pump 3 seconds off, 1 second on
-		self.num_pump_intervals = 2 #of times modulate_pump function will turn pump on an off. 
+		self.off_interval       = 1*60 #seconds. modulate pump 3 seconds off, 1 second on
+		self.on_interval        = .33*60 #seconds. modulate pump 3 seconds off, 1 second on
+		self.num_pump_intervals = 36 #of times modulate_pump function will turn pump on an off before checking the weather data- ogoes on/ off number of intervals until checking data. 
 		self.check_interval     = 1 #minutes. how often the script will check the current temperature and decide whether or not to modulate the pump.
 		self.threshold_temp     = 32 #degrees. threshold below which we start drip system
 
@@ -63,14 +65,17 @@ class Drip():
 		self.level2Temp = 10
 		self.level3Temp = 0
 
-		self.manual = False
+		self.manual = True #False #True to leave the pump on all the time 
+		self.manual_changed = False
+		self.override = False #once the temperature is above our threshold it immediately closes valve
+		self.override_changed = False
 		
 		GPIO.setmode(GPIO.BCM)
 		GPIO.setup(self.channel, GPIO.OUT)
 		GPIO.setup(self.ledGreen, GPIO.OUT)
 
 		#This causes the script to loop forever
-		self.mqttClient.loop_start()
+		#self.mqttClient.loop_start()
 		self.run_cycle()
 
 	def on_connect(self, client, userdata, flags, rc):
@@ -100,8 +105,15 @@ class Drip():
 		self.latitude = location[0]
 		self.longitude = location[1]
 
-		self.temperature=self.get_weather_data()
-		print(self.temperature)
+		try:
+			self.temperature=self.get_weather_data()
+		except:
+			pass
+		if self.temperature[0] > self.threshold_temp:
+			self.override = True
+		else:
+			self.override = False
+		print(self.temperature[0])
 		
 	def on_message_startup(self, client, userdata, msg):
 		'''
@@ -115,6 +127,20 @@ class Drip():
 		client.publish("Drip/Battery", "Bat,{}".format(self.battery))
 		client.publish("Drip/Danger", "Danger,{}".format(self.danger))
 		self.setup = True
+
+	def on_message_manual(self, client, userdata, msg):
+		'''
+		Callback function for
+ Drip/manual topic
+		Sets the self.manual variabl as true and thus opens the valve
+		'''
+		message = msg.payload.decode(encoding='UTF-8')
+		if message == "on":
+			self.manual = True
+		else:
+			self.manual = False
+		self.manual_changed = True
+		print("Manual Settings:", self.manual)
 	
 	def get_weather_data(self):
 		'''
@@ -142,39 +168,49 @@ class Drip():
 		if currentTemp>self.level1Temp:
 			self.state=0
 			self.danger = "None"
-		elif currentTemp<self.level1Temp:
+		elif currentTemp<self.level3Temp:
 			self.state=1
 			self.danger = "Low"
 		elif currentTemp<self.level2Temp:
 			self.state=2
 			self.danger = "Moderate"
-		elif currentTemp<self.level3Temp:		
+		elif currentTemp<self.level1Temp:		
 			self.state=3
 			self.danger = "High"
 		return temps
 
 	def pump_on(self, pin):
-		GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led off
-		os.system('./test_code_rf/CC1101/raspi/TX_Go -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
+		#GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led off
+		#os.system('./test_code_rf/CC1101/raspi/TX_Go -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
 		GPIO.output(pin, GPIO.HIGH) #turn pump on
-		#GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led on
+		GPIO.output(self.ledGreen, GPIO.HIGH) #turn green led on
 		print("Pump on")
+		return
     
 	def pump_off(self, pin):
-		GPIO.output(self.ledGreen, GPIO.LOW) #turn green led off
-		os.system('./test_code_rf/CC1101/raspi/TX_Stop -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
+		#GPIO.output(self.ledGreen, GPIO.LOW) #turn green led off
+		#os.system('./test_code_rf/CC1101/raspi/TX_Stop -a1 -r2 -i1000 -t0 -c1 -f434 -m250')
 		GPIO.output(pin, GPIO.LOW)
+		GPIO.output(self.ledGreen, GPIO.LOW) #turn green led off
 		print("Pump off")
+		return
 		
 	    
 	def modulate_pump(self):
 		for i in range(self.num_pump_intervals):
 			time_cycled = time.time()
 			self.pump_on(self.channel)
-			time.sleep(self.on_interval)
+			while self.on_interval - ((time.time() - time_cycled)) > 0 and not self.manual and not self.override:
+				pass
+			time_cycled2 = time.time()
 			self.pump_off(self.channel)
-			time.sleep(self.off_interval)
+			while self.on_interval - ((time.time() - time_cycled2)) > 0 and not self.manual and not self.override:
+				pass
+			if self.manual or self.override:
+				print("overrided")
+				return
 		print("number of intervals completed: ", self.num_pump_intervals)
+		return
 
 	def on_off_threshold(self):
 		if self.temperature[0] > self.threshold_temp:
@@ -186,14 +222,21 @@ class Drip():
 	def run_cycle(self):
 		while True:
 			print("While True")
-			self.on_off_threshold()
+			if self.manual:
+				self.pump_on(self.channel)
+				self.state = 1
+				self.danger = "Moderate"
+				print("manual on")
+			else:
+				self.on_off_threshold()
 			try:
 				self.temperature=self.get_weather_data()
 			except:
 				pass
+			self.manual_changed = False
 			starttime = time.time()
 			#The code sleeps/pauses until a minute has passed by
-			while 5*self.check_interval - ((time.time() - starttime)) > 0:
+			while 60*self.check_interval - ((time.time() - starttime)) > 0 and not self.manual and not self.manual_changed and not self.override:
 				pass
 				
 

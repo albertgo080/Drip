@@ -142,9 +142,11 @@ int main(int argc, char *argv[]) {
 					print_help(1);
 		}
 	}
-
+	int i=0;
 	// print all remaining options
 	for(; optind < argc; optind++)
+	
+
 		printf("argument: %s\n", argv[optind]);
 
 	//------------- welcome message ------------------------
@@ -169,19 +171,24 @@ int main(int argc, char *argv[]) {
 	//------------------------- Main Loop ------------------------
 	for (;;)
 	{
-		delay(1);                                           //delay to reduce system load
-
+                                          //delay to reduce system load
+		delay(1); 
 		if (millis() - prev_millis_1s_timer >= interval)    // one second update timer
 		{
+			if (i>10){
+				printf("Not found!\n");
+				return 0;
+			}
+
     			Rx_addr = rx_demo_addr;                     //receiver address
 
     			uint32_t time_stamp = millis();             //generate time stamp
 
-    			Tx_fifo[3] = (uint8_t)(time_stamp >> 24);   //split 32-Bit timestamp to 4 byte array
+    			//Tx_fifo[3] = (uint8_t)(time_stamp >> 24);   //split 32-Bit timestamp to 4 byte array
     			//Tx_fifo[4] = (uint8_t)(time_stamp >> 16);
     			//Tx_fifo[5] = (uint8_t)(time_stamp >> 8);
     			//Tx_fifo[6] = (uint8_t)(time_stamp);
-    			Tx_fifo[3]=0x01;
+    			Tx_fifo[3]=0x02;
 			Pktlen = 0x04;                              //set packet len to 0x13
 
     			uint8_t res = cc1100.sent_packet(My_addr, Rx_addr, Tx_fifo, Pktlen, tx_retries);
@@ -192,8 +199,8 @@ int main(int argc, char *argv[]) {
 			return 0;
 			}
 			prev_millis_1s_timer = millis();
+			i++; // Update counter so loop doesn't go forever
   		}
-
 	}
     printf("finished!\n");
     return 0;
