@@ -47,8 +47,8 @@ class TritonHub():
         # self.client = TritonClient(self.client_name)
         self.manual = manual # True on, False off
 
-        logger.debug("Manual is %s", ("On" if self.manual else "Off"))
-        logger.debug("Environment temp was set to %f", temp)
+        logger.info("Manual is %s", ("On" if self.manual else "Off"))
+        logger.info("Environment temp was set to %f", temp)
 
         # Create Pump object
         self.pump = Pump(self.pump_channel)
@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
     Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp, args.temp, args.manual)
@@ -144,4 +144,4 @@ if __name__ == '__main__':
     Hub.pump_off()
     GPIO.cleanup()
 
-    logger.debug("Exited cleanly")
+    logger.info("Exited cleanly")
