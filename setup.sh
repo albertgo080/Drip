@@ -1,43 +1,43 @@
 #!/bin/sh
 
+# This script will setup that pi as a drip hub and install the necessary
+# prerequistes. There may be some additional manual configuration at the end.
+
+# Keep track of user that called script for when using root commands
 export BASEUSR=$USER
 
-cd
+# Start relative to location of script 
+TOPDIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )" && pwd)"
+cd TOPDIR
 
-# Make Triton startup script
-echo "#!/bin/sh
-/home/$BASEUSR/python-wifi-connect/scripts/run.sh
-python3 /home/$BASEUSR/Drip/Drip_Hub/main.py" > triton
+echo "Top dir: $TOPDIR"
 
-chmod +x ./triton
 
-echo 'Created hub start up script'
+# Installing dependencies
+sudo apt install git python3-pip python3-venv libdbus-1-dev libglib2.0-dev
+virtualenv -y
 
-# Install Prequisites
 
+# Removing previous virtual env if it exists
+echo "Removing "rm -r $TOPDIR/drip_env""
+
+#rm -rf $TOPDIR/drip_env
+
+echo 'Setting up virtual environment for Drip Hub'
+
+python3 -m drip_env $TOPDIR/drip_env
+
+source $TOPDIR/drip_env/bin/activate
+
+echo "Installing Drip Hub dependencies"
+pip3 install requests bs4 netifaces RPi.GPIO
+
+pip3 install paho-mqtt
 # MQTT needs to be root to not throw errors
 # sudo -H pip3 install paho-mqtt
 
+deactivate
 
-# Make system start up file
+echo "Finished creating environment"
 
-sudo -E sh -c 'echo "[Unit]
-Description=Starts the triton system
-
-[Service]
-WorkingDirectory=/home/$BASEUSR
-
-Type=simple
-ExecStart=/home/$BASEUSR/triton
-
-[Install]
-WantedBy=multi-user.target" > /etc/systemd/system/triton.service'
-
-sudo systemctl enable triton
-
-echo 'Created and enabled Triton start up service'
-
-echo 'Run sudo systemctl start triton to start the hub without restarting'
-
-
-
+echo "Continue hub setup by installing network-manager in the next step"
