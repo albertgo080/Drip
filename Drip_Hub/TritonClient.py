@@ -107,7 +107,7 @@ class TritonClient():
         Prints message for any message not received through Triton/ topics
         '''
         message = msg.payload.decode(encoding='UTF-8')
-        logger.debug(message)
+        logger.debug("Message %s", message)
 
     def on_message_location(self, client, userdata, msg):
         '''
@@ -141,6 +141,7 @@ class TritonClient():
         client.publish(self.client_name + "/Battery", "Bat,{}".format(self.battery))
         client.publish(self.client_name + "/Danger", "Danger,{}".format(self.danger))
         self.setup = True
+        logger.debug("Setup has been completed")
 
     def on_message_manual(self, client, userdata, msg):
         '''
