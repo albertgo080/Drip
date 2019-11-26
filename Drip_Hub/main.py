@@ -48,6 +48,7 @@ class TritonHub():
         self.manual = manual # True on, False off
 
         logger.debug("Manual is %s", ("On" if self.manual else "Off"))
+        logger.debug("Environment temp was set to %f", temp)
 
         # Create Pump object
         self.pump = Pump(self.pump_channel)
@@ -85,10 +86,10 @@ class TritonHub():
             return self.modulate_pump()
 
     def run_cycle(self):
-        logger.debug("In run_cycle")
+        # logger.debug("In run_cycle")
         if self.manual:
             self.pump_on()
-            logger.debug("manual on")
+            # logger.debug("manual on")
         else:
             self.on_off_threshold()
         # try:
@@ -96,13 +97,15 @@ class TritonHub():
         # except:
             # pass
         starttime = time.time()
-        logger.debug("Start time: %f", starttime)
+        if not self.manual:
+            logger.debug("Start time: %f", starttime)
 
         # The code sleeps/pauses until a minute has passed by
         while 5*self.check_interval - ((time.time() - starttime)) > 0 and not self.manual:
             pass
 
-        logger.debug("After waiting for check interval: %f, diff: %f", time.time(), time.time()-starttime)
+        if not self.manual:
+            logger.debug("After waiting for check interval: %f, diff: %f", time.time(), time.time()-starttime)
 
 
 # def main():
