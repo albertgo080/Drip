@@ -1,13 +1,13 @@
-#RP://github.com/OpenAgricultureFoundation/python-wifi-connect.git!/bin/sh
+#!/bin/sh
 
-export BASEUSR=$USERNAME
+export BASEUSR=$USER
 
 cd
 
 # Make Triton startup script
 echo "#!/bin/sh
-/home/$USERNAME/python-wifi-connect/scripts/install.sh
-python3 /home/$USERNAME/Drip/Drip_Hub/main.py" > triton
+/home/$BASEUSR/python-wifi-connect/scripts/install.sh
+python3 /home/$BASEUSR/Drip/Drip_Hub/main.py" > triton
 
 chmod +x ./triton
 
@@ -25,17 +25,19 @@ sudo -E sh -c 'echo "[Unit]
 Description=Starts the triton system
 
 [Service]
-WorkingDirectory=/home/${BASEUSR}
+WorkingDirectory=/home/$BASEUSR
 
 Type=simple
-ExecStart=/home/${BASEUSR}/triton
+ExecStart=/home/$BASEUSR/triton
 
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/triton.service'
 
-sudo systemctl enable triton
+#sudo systemctl enable triton
 
-echo 'Created and enables Triton start up service'
+echo 'Created and enabled Triton start up service'
+
+echo 'Run sudo systemctl start triton to start the hub without restarting'
 
 
 
