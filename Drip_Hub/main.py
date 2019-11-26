@@ -47,6 +47,8 @@ class TritonHub():
         # self.client = TritonClient(self.client_name)
         self.manual = manual # True on, False off
 
+        logger.debug("Manual is %s", ("On" if self.manual else "Off"))
+
         # Create Pump object
         self.pump = Pump(self.pump_channel)
 
@@ -126,7 +128,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
-    Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
+    Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp, args.temp, args.manual)
 
     # run Triton until it is interrupted once server is setup
     try:
