@@ -120,18 +120,18 @@ if __name__ == '__main__':
     parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
     parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which Triton starts')
     parser.add_argument('--temp', default=40, type=float, help='manual setting temperature in degrees of environment')
-    parser.add_argument('--manual', default=False, type=bool, help='manual setting pump to be on')
+    parser.add_argument('--manual', default=0, type=int, help='manual setting pump to be on')
 
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 
-    logger.info(args.manual)
-    logger.info("Manual is %s", ("On" if args.manual else "Off"))
+    logger.info(bool(args.manual))
+    logger.info("Manual is %s", ("On" if bool(args.manual) else "Off"))
     logger.info("Environment temp was set to %f", args.temp)
 
-    Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp, args.temp, args.manual)
+    Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp, args.temp, bool(args.manual))
 
     # run Triton until it is interrupted once server is setup
     try:
