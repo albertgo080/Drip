@@ -1,4 +1,4 @@
-#!/bin/sh
+#RP://github.com/OpenAgricultureFoundation/python-wifi-connect.git!/bin/sh
 
 export BASEUSR=$USERNAME
 
@@ -33,7 +33,7 @@ ExecStart=/home/${BASEUSR}/triton
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/triton.service'
 
-#sudo systemctl enable triton
+sudo systemctl enable triton
 
 echo 'Created and enables Triton start up service'
 

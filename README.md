@@ -40,3 +40,13 @@ pip3 install requests bs4 netifaces RPi.GPIO
 # MQTT needs to be root to not throw errors
 sudo -H pip3 install paho-mqtt
 ```
+
+Clone the repos
+
+```bash
+
+git clone -b master https://github.com/albertgo080/Drip.git
+
+git clone https://github.com/OpenAgricultureFoundation/python-wifi-connect.git
+
+```
