@@ -6,7 +6,7 @@ cd
 
 # Make Triton startup script
 echo "#!/bin/sh
-/home/$BASEUSR/python-wifi-connect/scripts/install.sh
+/home/$BASEUSR/python-wifi-connect/scripts/run.sh
 python3 /home/$BASEUSR/Drip/Drip_Hub/main.py" > triton
 
 chmod +x ./triton
@@ -33,7 +33,7 @@ ExecStart=/home/$BASEUSR/triton
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/triton.service'
 
-#sudo systemctl enable triton
+sudo systemctl enable triton
 
 echo 'Created and enabled Triton start up service'
 
