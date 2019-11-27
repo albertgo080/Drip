@@ -45,7 +45,7 @@ class TritonClient():
         # define the address of the server
         self.net_interface = net_interface
         self.serverAddress = ni.ifaddresses(self.net_interface)[ni.AF_INET][0]['addr']
-        logger.debug("Server address: %s", self.serverAddress)
+        logger.info("Client: %s at address: %s", self.client_name, self.serverAddress)
 
         # define the client
         self.mqtt_client = mqtt.Client(self.client_name)

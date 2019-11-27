@@ -116,10 +116,15 @@ if __name__ == '__main__':
     parser.add_argument('--num_intervals', default=2, type=int, help='Number of times pump modulates off')
     parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
     parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which Triton starts')
+    parser.add_argument('--debug', action='store_true', help='Show DEBUG messages. Otherwise just shows INFO and above')
 
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.DEBUG)
+    if (args.debug):
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
+
     logger = logging.getLogger(__name__)
 
     Hub = TritonHub("Triton-Zero", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
@@ -130,10 +135,11 @@ if __name__ == '__main__':
             if Hub.client.setup:
                 Hub.run_cycle()
     except KeyboardInterrupt:
+        logger.info("Trying to exit script")
         pass
 
     # turn off pump before exiting and clear raspi pin outs
     Hub.pump_off()
     GPIO.cleanup()
 
-    logger.debug("Exited cleanly")
+    logger.info("Exited cleanly")
