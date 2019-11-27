@@ -122,7 +122,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logger = logging.getLogger(__name__)
 
-    Hub = TritonHub("Triton", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
+    Hub = TritonHub("Triton-Zero", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
 
     # run Triton until it is interrupted once server is setup
     try:
