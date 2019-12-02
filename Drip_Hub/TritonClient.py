@@ -58,10 +58,10 @@ class TritonClient():
         self.mqtt_client.on_connect = self.on_connect
 
         # Establishing and calling callback functions for when messages from different topics are received
-        self.mqtt_client.message_callback_add(self.client_name + '/location', self.on_message_location)
-        logger.debug("Location topic: %s", self.client_name+'/location')
-        self.mqtt_client.message_callback_add(self.client_name + '/startup', self.on_message_startup)
-        self.mqtt_client.message_callback_add(self.client_name + '/manual', self.on_message_manual)
+        self.mqtt_client.message_callback_add(self.client_name + '/Location', self.on_message_location)
+        logger.debug("Location topic: %s", self.client_name+'/Location')
+        self.mqtt_client.message_callback_add(self.client_name + '/Startup', self.on_message_startup)
+        self.mqtt_client.message_callback_add(self.client_name + '/Manual', self.on_message_manual)
         self.mqtt_client.on_message = self.on_message
 
         #connect to aws iot (DA CLOUD)
@@ -77,20 +77,15 @@ class TritonClient():
 
         # Defining variables that the app subscribes to - THESE ARE DUMMY VARIABLES
         self.temperature = [50,0]
-        self.state       = 0
-        self.battery     = 90
+        self.active      = 0
         self.danger      = 'None'
 
         # Defining whether or not setup has been completed
         self.setup = False
 
-        ## LOGIC VARIABLES
-        self.level1Temp = level1Temp
-        self.level2Temp = level2Temp
-        self.level3Temp = level3Temp
-
         # Tells if Triton was manually set to be on
         self.manual = False
+        self.pump_control_on=False
 
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
@@ -121,12 +116,13 @@ class TritonClient():
 
         self.latitude = location[0]
         self.longitude = location[1]
+        self.setup=True
+        logger.debug("Setup has been completed")
         logger.debug("Latitude: %s, Longitude: %s", self.latitude, self.longitude)
         try:
             self.temperature = self.get_weather_data()
         except KeyError:
             logger.error("Could not get weather data for given long/lat. Temp staying the same")
-
         logger.debug("Temperature: %f", self.temperature[0])
 
     def on_message_startup(self, client, userdata, msg):
@@ -136,12 +132,10 @@ class TritonClient():
         This function is called everythime someone opens the Triton dashboard in the app
         Also is called when someone hits the refresh button on the app
         '''
-        client.publish(self.client_name + "/State", "State,{}".format(self.state))
+        client.publish(self.client_name + "/Active", "Active,{}".format(self.active))
         client.publish(self.client_name + "/Temperature","Temp,{}".format(self.temperature[0]))
-        client.publish(self.client_name + "/Battery", "Bat,{}".format(self.battery))
         client.publish(self.client_name + "/Danger", "Danger,{}".format(self.danger))
-        self.setup = True
-        logger.debug("Setup has been completed")
+        logger.debug("startup has been called")
 
     def on_message_manual(self, client, userdata, msg):
         '''
@@ -155,6 +149,20 @@ class TritonClient():
         else:
             self.manual = False
         logger.debug("Manual Settings: %d", self.manual)
+
+    def on_message_pump(self,client,userdata,msg):
+        '''
+        Callback function for Triton/Pump topic
+        sets self.pump_control_on to be on or off_interval
+        '''
+        message=msg.payload.decode(encoding='UTF-8')
+        if message=="on":
+            self.pump_control_on=True
+        elif message=="off":
+            self.pump_control_on=False
+        else:
+            logger.debug("Bad /Pump Message: %s", message)
+        logger.debug("Pump Control is %d", self.pump_control_on)
 
     def get_weather_data(self):
         '''
@@ -193,7 +201,7 @@ class TritonClient():
             raise err
 
         logger.debug("Successfully called weather API")
-    
+
         #get temp data
         temps = [period["temperature"] for period in props["periods"]]
 
@@ -202,19 +210,10 @@ class TritonClient():
 
         current_temp = temps[0]
         current_wind_speed=speeds[0]
-        
-        if current_temp > self.level1Temp:
-            self.state = 0
-            self.danger = "None"
-        elif current_temp < self.level1Temp:
-            self.state = 1
-            self.danger = "Low"
-        elif current_temp < self.level2Temp:
-            self.state = 2
-            self.danger = "Moderate"
-        elif current_temp < self.level3Temp:
-            self.state = 3
-            self.danger = "High"
+        self.current_temp=current_temp
+        self.current_wind_speed=current_wind_speed
+        self.check_danger()
+
         return temps
 
 
@@ -227,3 +226,63 @@ class TritonClient():
         ssl_context.load_verify_locations(cafile=self.ca)
         ssl_context.load_cert_chain(certfile=self.cert, keyfile=self.private)
         return  ssl_context
+
+    def check_danger(self):
+        #different bins.
+        #starts at highest temp, goes down.
+        #first number is off time, second is on time
+
+        bins={
+            "0":(300,15),#30>T>25 (all temps in F)
+            "1":(180,15),#25>T>20
+            "2":(90,15),#20>T>10
+            "3":(75,15),#10>T>0
+            "4":(50,15),#0>T>-10
+            "5":(45,15),#-10>T>-20
+            "6":(30,15),#-20>T
+        }
+        bin_max=6
+
+        t=self.current_temp
+        s=self.current_wind_speed
+        bin=None
+
+        #account for temp
+        if t>30:
+            self.active=0 #not actively pumping
+            self.danger="None"
+            return
+        elif (30>=t>25):
+            bin=0
+            self.danger="Low"
+        elif (25>=t>20):
+            bin=1
+            self.danger="Low"
+        elif (20>=t>10):
+            bin=2
+            self.danger="Low"
+        elif (10>=t>0):
+            bin=3
+            self.danger="Medium"
+        elif (0>=t>-10):
+            bin=4
+            self.danger="Medium"
+        elif (-10>=t>-20):
+            bin=5
+            self.danger="High"
+        else: #temp is below 20
+            bin=6
+            self.danger="High"
+        self.active=1 #some duty cycle is active
+
+
+        #account for wind
+        if 20>s>9:
+            bin+=1
+        elif s>20:
+            bin+=2
+
+        if bin>bin_max: #cap it so no errors
+            bin=bin_max
+
+        self.times=bins[str(bin)]

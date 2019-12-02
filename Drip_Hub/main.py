@@ -30,7 +30,7 @@ class TritonHub():
         self.num_pump_intervals = num_pump_intervals # of times modulate_pump function will turn pump on an off.
         self.check_interval     = check_interval # minutes. how often the script will check the current temperature and decide whether or not to modulate the pump.
         self.threshold_temp     = threshold_temp #degrees. threshold below which we start Triton system
-
+        self.cycle_length       = 15*60 # 15 minutes
         self.pump_channel       = 17 # for pump relay
         self.led_green          = 16 # for status relay
 
@@ -79,7 +79,37 @@ class TritonHub():
         else:
             return self.modulate_pump()
 
+    def get_cutoff(self):
+        (off,on)=self.client.times
+        self.cutoff=on/(off+on)*self.cycle_length
+
     def run_cycle(self):
+        '''
+
+        if not self.manual: if time has been more than 15 minutes since last
+        weather update, update weather and set on off ratio. if time has been
+        less than x minutes since last update, be on. If time is greater than
+        x, be off.
+        '''
+
+        if self.client.manual:
+            if self.client.pump_control_on:
+                self.pump_on()
+                self.client.active = 1
+            else:
+                self.pump_off()
+                self.client.active=0
+        else:
+            if ()(time.time()-self.start_time)>self.cycle_length):
+                self.temperature = self.client.get_weather_data()
+                self.get_cutoff()
+                self.start_time = time.time()
+            if ( (time.time() - self.start_time) < self.cutoff and self.client.active):
+                self.pump_on()
+            else:
+                self.pump_off()
+
+                '''
         logger.debug("In run_cycle")
         if self.client.manual:
             self.pump_on()
@@ -96,11 +126,11 @@ class TritonHub():
         logger.debug("Start time: %f", starttime)
 
         # The code sleeps/pauses until a minute has passed by
-        while 5*self.check_interval - ((time.time() - starttime)) > 0 and not self.client.manual:
+        while 5*self.check_interval - (time.time() - starttime) > 0 and not self.client.manual:
             pass
 
         logger.debug("After waiting for check interval: %f, diff: %f", time.time(), time.time()-starttime)
-
+        '''
 
 # def main():
 #     '''
