@@ -24,22 +24,27 @@ class TritonClient():
     '''
     Initialize the MQTT server.
     Params:
+        config (dict) - dictionary containing certificate and key paths, and stored location
         client_name (string) - id of Triton system on server
         net_interface (string) - network interface to use (wifi vs ethernet), only tested on wifi now
         level1Temp, level2Temp, level3Temp (int) - the warning temperatures for this Triton install
     '''
+
     def __init__(self, config, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0, testing=True):
         #constants for server connection
         self.IoT_protocol_name = "Triton"
-        self.aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
+
+        self.aws_iot_endpoint = config['aws_endpoint']
         self.url = "https://{}".format(self.aws_iot_endpoint)
 
-        self.ca = "/usr/local/share/ca-certificates/aws3.crt"
-        self.private = "/home/purple/26b644023d-private.pem.key"
-        self.cert = "/home/purple/26b644023d-certificate.pem.crt"
+        self.ca = config['ca-cert']
+        self.private = config['private-key']
+        self.cert = config['cert']
         #end aws server constants
 
-        # define script name for when it appears on server
+        self.config_path = config['path-to-config']
+
+        # define script name for w  hen it appears on server
         self.client_name = client_name
 
         # define the address of the server
@@ -72,8 +77,10 @@ class TritonClient():
         self.mqtt_client.subscribe(self.client_name+'/#')
 
         # Defining location variables
-        self.latitude  = None
-        self.longitude = None
+        self.latitude  = config['coordinates']['lat']
+        self.longitude = config['coordinates']['long']
+
+        logger.debug("Initialized TritonClient with %f long, %f lat", self.longitude, self.latitude)
 
         # Defining variables that the app subscribes to - THESE ARE DUMMY VARIABLES
         self.temperature = [50,0]
@@ -92,6 +99,25 @@ class TritonClient():
 
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
+
+    def update_config_location(self, long, lat):
+        '''
+            Updates the configuration file with the given long lat coordinates
+        '''
+        config_file = open(self.config_path, 'r', encoding='utf-8')
+        config = json.load(config_file)
+        config_file.close()
+
+        logger.debug("Opened JSON file for update")
+
+        config["coordinates"]['long'] = long
+        config["coordinates"]['lat'] = lat
+
+        config_file = open(self.config_path, "w")
+        json.dump(config, config_file, ensure_ascii=False, indent=4)
+        config_file.close()
+
+        logger.info("Wrote JSON with new long lat coordinates: %f long, %f lat", long, lat)
 
     def on_connect(self, client, userdata, flags, rc):
         '''
@@ -119,10 +145,12 @@ class TritonClient():
 
         self.latitude = location[0]
         self.longitude = location[1]
+        # Update config file in case script fails and will restart with old location
+        self.update_config_location(self.longitude, self.latitude)
+    
         self.setup=True
-
-        logger.debug("Setup has been completed in location message")
-        logger.info("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
+        logger.debug("Setup has been completed")
+        logger.info("Latitude: %s, Longitude: %s", self.latitude, self.longitude)
 
         try:
             self.temperature = self.get_weather_data()
@@ -177,12 +205,12 @@ class TritonClient():
         logger.debug("Getting weather data!")
         # define url that takes latitiude and longitude variables
         url = 'https://api.weather.gov/points/' + str(self.latitude) + ',' + str(self.longitude)
-        initial = requests.get(url).json()
+        dict_one = requests.get(url).json()
 
         # Get new URL for weather at specific coordinates
-        logger.debug("Dict one: %s",str(dict_one))
+        # logger.debug("Dict one: %s",str(dict_one))
         try:
-            url = initial["properties"]["forecastHourly"]
+            url = dict_one["properties"]["forecastHourly"]
             logger.debug("Url: %s", url)
 
         except KeyError:
@@ -191,17 +219,18 @@ class TritonClient():
             raise err
 
         # do again but with new url
-        initial = requests.get(url).json()
-        logger.debug("Dict one 2: %s", str(dict_one))
+        dict_one = requests.get(url).json()
+        # logger.debug("Dict one 2: %s", str(dict_one))
+
         try:
-            props = initial["properties"]
+            props = dict_one["properties"]
             logger.debug("Props: %s", str(props))
         except KeyError:
             logger.error("Location given does produce dict 2 with a 'properties key'")
             err = KeyError("Location given does produce dict with a 'properties key'")
             raise err
 
-        logger.debug("Successfully called weather API")
+        logger.info("Successfully called weather API")
 
         #get temp data
         temps = [period["temperature"] for period in props["periods"]]
