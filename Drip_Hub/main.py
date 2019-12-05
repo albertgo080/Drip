@@ -105,16 +105,21 @@ class TritonHub():
         else:
             if ((time.time()-self.start_time)>self.cycle_length or self.start_time==-1):
                 if self.which_cycle > self.cycle_num or self.start_time==-1 :
+                    logger.info("Updating weather and bins")
                     #only update after 4 cycles (so an hour)
                     self.temperature = self.client.get_weather_data()
                     self.get_cutoff()
                     self.which_cycle=1
                 else:
+                    logger.info("Remaining cycles. No weather update needed")
                     self.which_cycle+=1
                 self.start_time = time.time()
+
             if ( (time.time() - self.start_time) < self.cutoff and self.client.active):
+                logger.info("Turning pump on")
                 self.pump_on()
             else:
+                logger.info("Turning pump off")
                 self.pump_off()
 
                 '''
@@ -178,6 +183,7 @@ def main(args):
         while True:
             if Hub.client.setup:
                 Hub.run_cycle()
+            time.sleep(0.01)
     except KeyboardInterrupt:
         logger.info("Trying to exit script")
         pass
