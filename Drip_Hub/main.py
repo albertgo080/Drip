@@ -155,7 +155,7 @@ if __name__ == '__main__':
     parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
     parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which Triton starts')
     parser.add_argument('--debug', action='store_true', help='Show DEBUG messages. Otherwise just shows INFO and above')
-    parser.add_argument('--testing', default=True, type=boolean, help='Tells Triton whether you are using the testing setup (conduction model) or a real setup (convection model)')
+    parser.add_argument('--testing', default=1, type=int, help='Tells Triton whether you are using the testing setup (conduction model) or a real setup (convection model)')
 
     args = parser.parse_args()
 
