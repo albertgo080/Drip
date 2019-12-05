@@ -138,19 +138,21 @@ class TritonClient():
         Callback function for Triton/location topics
         Gets the temperature based on the location that is specified
         '''
+        # TODO Make app default (before clicking screen) to GPS coordinates of user
+
         message = msg.payload.decode(encoding='UTF-8')
         logger.debug(message)
         #split on the comma because the message in the form of "latitude, longitude"
         location = message.split(",")
 
-        self.latitude = location[0]
-        self.longitude = location[1]
+        self.latitude = float(location[0])
+        self.longitude = float(location[1])
         # Update config file in case script fails and will restart with old location
         self.update_config_location(self.longitude, self.latitude)
     
         self.setup=True
         logger.debug("Setup has been completed")
-        logger.info("Latitude: %s, Longitude: %s", self.latitude, self.longitude)
+        logger.info("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
 
         try:
             self.temperature = self.get_weather_data()
@@ -176,7 +178,7 @@ class TritonClient():
         Sets the self.manual variabl as true and thus opens the valve
         '''
         message = msg.payload.decode(encoding='UTF-8')
-        print (message)
+        logger.debug(message)
         if message == "on":
             self.manual = True
         else:
@@ -210,6 +212,7 @@ class TritonClient():
         # Get new URL for weather at specific coordinates
         # logger.debug("Dict one: %s",str(dict_one))
         try:
+            logger.debug(dict_one)
             url = dict_one["properties"]["forecastHourly"]
             logger.debug("Url: %s", url)
 
