@@ -97,9 +97,11 @@ class TritonHub():
 
         if self.client.manual:
             if self.client.pump_control_on:
+                logger.debug("Manual on: Pump on")
                 self.pump_on()
                 self.client.active = 1
             else:
+                logger.debug("Manual on: Pump off")
                 self.pump_off()
                 self.client.active=0
         else:

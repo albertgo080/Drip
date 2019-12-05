@@ -141,7 +141,7 @@ class TritonClient():
         # TODO Make app default (before clicking screen) to GPS coordinates of user
 
         message = msg.payload.decode(encoding='UTF-8')
-        logger.debug(message)
+        logger.debug("Location message %s: ", message)
         #split on the comma because the message in the form of "latitude, longitude"
         location = message.split(",")
 
@@ -149,7 +149,6 @@ class TritonClient():
         self.longitude = float(location[1])
         # Update config file in case script fails and will restart with old location
         self.update_config_location(self.longitude, self.latitude)
-    
         self.setup=True
         logger.debug("Setup has been completed")
         logger.info("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
@@ -178,7 +177,7 @@ class TritonClient():
         Sets the self.manual variabl as true and thus opens the valve
         '''
         message = msg.payload.decode(encoding='UTF-8')
-        logger.debug(message)
+        logger.debug("Manual message: %s", message)
         if message == "on":
             self.manual = True
         else:
@@ -212,7 +211,6 @@ class TritonClient():
         # Get new URL for weather at specific coordinates
         # logger.debug("Dict one: %s",str(dict_one))
         try:
-            logger.debug(dict_one)
             url = dict_one["properties"]["forecastHourly"]
             logger.debug("Url: %s", url)
 
@@ -223,11 +221,10 @@ class TritonClient():
 
         # do again but with new url
         dict_one = requests.get(url).json()
-        # logger.debug("Dict one 2: %s", str(dict_one))
 
         try:
             props = dict_one["properties"]
-            logger.debug("Props: %s", str(props))
+            # logger.debug("Props: %s", str(props))
         except KeyError:
             logger.error("Location given does produce dict 2 with a 'properties key'")
             err = KeyError("Location given does produce dict with a 'properties key'")
