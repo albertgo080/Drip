@@ -233,13 +233,13 @@ class TritonClient():
         #first number is off time, second is on time
 
         bins={
-            "0":(300,15),#30>T>25 (all temps in F)
+            "0":(300,15),#30>T>25 (all temps in F, times in minutes)
             "1":(180,15),#25>T>20
             "2":(90,15),#20>T>10
             "3":(75,15),#10>T>0
             "4":(50,15),#0>T>-10
             "5":(45,15),#-10>T>-20
-            "6":(30,15),#-20>T
+            "6":(20,15),#-20>T
         }
         bin_max=6
 

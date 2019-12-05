@@ -31,6 +31,8 @@ class TritonHub():
         self.check_interval     = check_interval # minutes. how often the script will check the current temperature and decide whether or not to modulate the pump.
         self.threshold_temp     = threshold_temp #degrees. threshold below which we start Triton system
         self.cycle_length       = 15*60 # 15 minutes
+        self.cycle_num          = 4 #4 * 15 minutes = 1 hour
+        self.which_cycle        = 1 #to count which of the four cycles
         self.pump_channel       = 17 # for pump relay
         self.led_green          = 16 # for status relay
 
@@ -100,9 +102,14 @@ class TritonHub():
                 self.pump_off()
                 self.client.active=0
         else:
-            if ()(time.time()-self.start_time)>self.cycle_length):
-                self.temperature = self.client.get_weather_data()
-                self.get_cutoff()
+            if ((time.time()-self.start_time)>self.cycle_length):
+                if self.which_cycle >= self.cycle_num:
+                    #only update after 4 cycles (so an hour)
+                    self.temperature = self.client.get_weather_data()
+                    self.get_cutoff()
+                    self.which_cycle=1
+                else:
+                    self.which_cycle+=1
                 self.start_time = time.time()
             if ( (time.time() - self.start_time) < self.cutoff and self.client.active):
                 self.pump_on()
