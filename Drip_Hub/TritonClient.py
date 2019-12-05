@@ -166,10 +166,11 @@ class TritonClient():
         This function is called everythime someone opens the Triton dashboard in the app
         Also is called when someone hits the refresh button on the app
         '''
-        client.publish(self.client_name + "/Active", "Active,{}".format(self.active))
+        client.publish(self.client_name + "/Active", self.active)
         client.publish(self.client_name + "/Temperature",str(self.temperature[0]))
-        client.publish(self.client_name + "/Danger", "Danger,{}".format(self.danger))
-        logger.debug("startup has been called")
+        client.publish(self.client_name + "/Danger", str(self.danger))
+        client.publish(self.client_name + "/Wind", self.current_wind_speed)
+	logger.debug("startup has been called")
 
     def on_message_manual(self, client, userdata, msg):
         '''
@@ -311,59 +312,4 @@ class TritonClient():
 
         self.time=time_freeze
 
-        '''
-        #below is not equation, just bins
-        bins={
-            "0":(300,15),#30>T>25 (all temps in F, times in minutes)
-            "1":(180,15),#25>T>20
-            "2":(90,15),#20>T>10
-            "3":(75,15),#10>T>0
-            "4":(50,15),#0>T>-10
-            "5":(45,15),#-10>T>-20
-            "6":(20,15),#-20>T
-        }
-        bin_max=6
-
-
-        bin=None
-
-        #account for temp
-        if t>30:
-            self.active=0 #not actively pumping
-            self.danger="None"
-            return
-        elif (30>=t>25):
-            bin=0
-            self.danger="Low"
-        elif (25>=t>20):
-            bin=1
-            self.danger="Low"
-        elif (20>=t>10):
-            bin=2
-            self.danger="Low"
-        elif (10>=t>0):
-            bin=3
-            self.danger="Medium"
-        elif (0>=t>-10):
-            bin=4
-            self.danger="Medium"
-        elif (-10>=t>-20):
-            bin=5
-            self.danger="High"
-        else: #temp is below 20
-            bin=6
-            self.danger="High"
-        self.active=1 #some duty cycle is active
-
-
-        #account for wind
-        if 20>s>9:
-            bin+=1
-        elif s>20:
-            bin+=2
-
-        if bin>bin_max: #cap it so no errors
-            bin=bin_max
-
-        self.times=bins[str(bin)]
-        '''
+	self.danger="Medium"
