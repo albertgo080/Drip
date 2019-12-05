@@ -15,6 +15,8 @@ import json
 import argparse
 
 import logging
+logger = logging.getLogger(__name__)
+
 
 class TritonHub():
 
@@ -156,8 +158,6 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
     else:
         logging.basicConfig(level=logging.INFO)
-
-    logger = logging.getLogger(__name__)
 
     # Get path to main.py script
     main_path = os.path.dirname(os.path.abspath(__file__))

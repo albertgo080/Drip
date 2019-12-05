@@ -74,8 +74,8 @@ class TritonClient():
         self.mqtt_client.subscribe(self.client_name+'/#')
 
         # Defining location variables
-        self.latitude  = None
-        self.longitude = None
+        self.latitude  = config['coordinates']['lat']
+        self.longitude = config['coordinates']['long']
 
         # Defining variables that the app subscribes to - THESE ARE DUMMY VARIABLES
         self.temperature = [50,0]
@@ -84,6 +84,11 @@ class TritonClient():
 
         # Defining whether or not setup has been completed
         self.setup = False
+
+        # If coordinates already good, then just use these
+        if self.latitude is not None and self.longitude is not None:
+            self.setup = True
+
 
         # Tells if Triton was manually set to be on
         self.manual = False
@@ -195,7 +200,7 @@ class TritonClient():
         # logger.debug("Dict one 2: %s", str(dict_one))
         try:
             props = initial["properties"]
-            logger.debug("Props: %s", str(props))
+            # logger.debug("Props: %s", str(props))
         except KeyError:
             logger.error("Location given does produce dict 2 with a 'properties key'")
             err = KeyError("Location given does produce dict with a 'properties key'")
