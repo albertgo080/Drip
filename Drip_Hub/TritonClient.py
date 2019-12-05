@@ -170,7 +170,7 @@ class TritonClient():
         client.publish(self.client_name + "/Temperature",str(self.temperature[0]))
         client.publish(self.client_name + "/Danger", str(self.danger))
         client.publish(self.client_name + "/Wind", self.current_wind_speed)
-	logger.debug("startup has been called")
+        logger.debug("startup has been called")
 
     def on_message_manual(self, client, userdata, msg):
         '''
@@ -311,5 +311,4 @@ class TritonClient():
         time_freeze=.85*time_freeze #adds safety factor
 
         self.time=time_freeze
-
-	self.danger="Medium"
+        self.danger="Medium"
