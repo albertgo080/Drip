@@ -140,23 +140,7 @@ class TritonHub():
         logger.debug("After waiting for check interval: %f, diff: %f", time.time(), time.time()-starttime)
         '''
 
-def main():
-    parser = argparse.ArgumentParser(description="Run the Triton systems")
-    parser.add_argument('--off_interval', default=4, type=float, help='seconds that pump modulates off')
-    parser.add_argument('--on_interval', default=4, type=float, help='seconds that pump modulates on')
-    parser.add_argument('--num_intervals', default=2, type=int, help='Number of times pump modulates off')
-    parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
-    parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which Triton starts')
-    parser.add_argument('--debug', action='store_true', help='Show DEBUG messages. Otherwise just shows INFO and above')
-    parser.add_argument('--testing', default=1, type=int, help='Tells Triton whether you are using the testing setup (conduction model) or a real setup (convection model)')
-
-    args = parser.parse_args()
-
-    if (args.debug):
-        logging.basicConfig(level=logging.DEBUG)
-    else:
-        logging.basicConfig(level=logging.INFO)
-
+def main(args):
     # Get path to main.py script
     main_path = os.path.dirname(os.path.abspath(__file__))
     config_filename = 'config.json'
@@ -206,6 +190,22 @@ def main():
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Run the Triton systems")
+    parser.add_argument('--off_interval', default=4, type=float, help='seconds that pump modulates off')
+    parser.add_argument('--on_interval', default=4, type=float, help='seconds that pump modulates on')
+    parser.add_argument('--num_intervals', default=2, type=int, help='Number of times pump modulates off')
+    parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
+    parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which Triton starts')
+    parser.add_argument('--debug', action='store_true', help='Show DEBUG messages. Otherwise just shows INFO and above')
+    parser.add_argument('--testing', default=1, type=int, help='Tells Triton whether you are using the testing setup (conduction model) or a real setup (convection model)')
+
+    args = parser.parse_args()
+
+    if (args.debug):
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
-    main()
+
+    main(args)
     
