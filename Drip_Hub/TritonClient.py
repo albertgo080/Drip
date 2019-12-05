@@ -28,17 +28,15 @@ class TritonClient():
         net_interface (string) - network interface to use (wifi vs ethernet), only tested on wifi now
         level1Temp, level2Temp, level3Temp (int) - the warning temperatures for this Triton install
     '''
-    def __init__(self, config, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0, testing=True):
+    def __init__(self, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0, testing=True):
         #constants for server connection
         self.IoT_protocol_name = "Triton"
-
-        self.aws_iot_endpoint = config['aws_endpoint']
+        self.aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
         self.url = "https://{}".format(self.aws_iot_endpoint)
 
-        self.ca = config['ca-cert']
-        self.private = config['private-key']
-        self.cert = config['cert']
-
+        self.ca = "/usr/local/share/ca-certificates/aws3.crt"
+        self.private = "/home/purple/26b644023d-private.pem.key"
+        self.cert = "/home/purple/26b644023d-certificate.pem.crt"
         #end aws server constants
 
         # define script name for when it appears on server
@@ -74,8 +72,8 @@ class TritonClient():
         self.mqtt_client.subscribe(self.client_name+'/#')
 
         # Defining location variables
-        self.latitude  = config['coordinates']['lat']
-        self.longitude = config['coordinates']['long']
+        self.latitude  = None
+        self.longitude = None
 
         # Defining variables that the app subscribes to - THESE ARE DUMMY VARIABLES
         self.temperature = [50,0]
@@ -84,11 +82,6 @@ class TritonClient():
 
         # Defining whether or not setup has been completed
         self.setup = False
-
-        # If coordinates already good, then just use these
-        if self.latitude is not None and self.longitude is not None:
-            self.setup = True
-
 
         # Tells if Triton was manually set to be on
         self.manual = False
@@ -128,7 +121,7 @@ class TritonClient():
         self.longitude = location[1]
         self.setup=True
         logger.debug("Setup has been completed")
-        logger.debug("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
+        logger.debug("Latitude: %s, Longitude: %s", self.latitude, self.longitude)
         try:
             self.temperature = self.get_weather_data()
         except KeyError:
@@ -143,7 +136,7 @@ class TritonClient():
         Also is called when someone hits the refresh button on the app
         '''
         client.publish(self.client_name + "/Active", "Active,{}".format(self.active))
-        client.publish(self.client_name + "/Temperature","Temp,{}".format(self.temperature[0]))
+        client.publish(self.client_name + "/Temperature",str(self.temperature[0]))
         client.publish(self.client_name + "/Danger", "Danger,{}".format(self.danger))
         logger.debug("startup has been called")
 
@@ -185,7 +178,7 @@ class TritonClient():
         initial = requests.get(url).json()
 
         # Get new URL for weather at specific coordinates
-        # logger.debug("Dict one: %s",str(dict_one))
+        logger.debug("Dict one: %s",str(dict_one))
         try:
             url = initial["properties"]["forecastHourly"]
             logger.debug("Url: %s", url)
@@ -197,16 +190,16 @@ class TritonClient():
 
         # do again but with new url
         initial = requests.get(url).json()
-        # logger.debug("Dict one 2: %s", str(dict_one))
+        logger.debug("Dict one 2: %s", str(dict_one))
         try:
             props = initial["properties"]
-            # logger.debug("Props: %s", str(props))
+            logger.debug("Props: %s", str(props))
         except KeyError:
             logger.error("Location given does produce dict 2 with a 'properties key'")
             err = KeyError("Location given does produce dict with a 'properties key'")
             raise err
 
-        logger.info("Successfully called weather API")
+        logger.debug("Successfully called weather API")
 
         #get temp data
         temps = [period["temperature"] for period in props["periods"]]
