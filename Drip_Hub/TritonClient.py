@@ -214,7 +214,7 @@ class TritonClient():
 
         current_temp = temps[0]
         current_wind_speed=speeds[0]
-        print(current_wind_speed)
+
         self.current_temp=current_temp
         self.current_wind_speed=current_wind_speed
         self.check_danger()
@@ -238,6 +238,12 @@ class TritonClient():
         #first number is off time, second is on time
         t=self.current_temp #F
         s=self.current_wind_speed #mph
+        if t>=30:
+            self.danger="None"
+            self.active=0
+            self.time=1000
+            return
+        self.active=1
 
         diameter=.0127
         density_air=1.25
@@ -253,7 +259,6 @@ class TritonClient():
         t_freeze=0
         t_initial=7
         t_celc=(t-32)*5/9
-
         k_water=0.58
         k_ice=2.18
         k_avg=(k_water+k_ice)/2
