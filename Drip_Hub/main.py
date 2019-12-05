@@ -18,7 +18,7 @@ import logging
 
 class TritonHub():
     def __init__(self, client_name="Triton", off_interval=4, \
-                    on_interval=4, num_pump_intervals=2, check_interval=1, threshold_temp=32):
+                    on_interval=4, num_pump_intervals=2, check_interval=1, threshold_temp=32, testing=True):
 
          # ID of system as appears on server
         self.client_name = client_name
@@ -35,7 +35,7 @@ class TritonHub():
         self.which_cycle        = 1 #to count which of the four cycles
         self.pump_channel       = 17 # for pump relay
         self.led_green          = 16 # for status relay
-
+        self.testing            = testing
         #########################################
 
         # Set RPi GPIO pins to blink LED
@@ -44,7 +44,7 @@ class TritonHub():
 
 
         # Create MQQT and weather object
-        self.client = TritonClient(self.client_name)
+        self.client = TritonClient(self.client_name, testing=self.testing)
 
         # Create Pump object
         self.pump = Pump(self.pump_channel)
@@ -82,7 +82,8 @@ class TritonHub():
             return self.modulate_pump()
 
     def get_cutoff(self):
-        (off,on)=self.client.times
+        off=self.client.time
+        on=15
         self.cutoff=on/(off+on)*self.cycle_length
 
     def run_cycle(self):
@@ -154,6 +155,7 @@ if __name__ == '__main__':
     parser.add_argument('--check_interval', default=1, type=float, help='How often in seconds hub checks for new temperatures')
     parser.add_argument('--threshold_temp', default=32, type=float, help='degress Fahrenheight Threshold below which Triton starts')
     parser.add_argument('--debug', action='store_true', help='Show DEBUG messages. Otherwise just shows INFO and above')
+    parser.add_argument('--testing', default=True, type=boolean, help='Tells Triton whether you are using the testing setup (conduction model) or a real setup (convection model)')
 
     args = parser.parse_args()
 

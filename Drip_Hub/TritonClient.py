@@ -7,6 +7,7 @@ import paho.mqtt.client as mqtt
 import RPi.GPIO as GPIO
 import time
 import os
+import math
 
 import requests
 from bs4 import BeautifulSoup
@@ -28,7 +29,7 @@ class TritonClient():
         net_interface (string) - network interface to use (wifi vs ethernet), only tested on wifi now
         level1Temp, level2Temp, level3Temp (int) - the warning temperatures for this Triton install
     '''
-    def __init__(self, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0):
+    def __init__(self, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0, testing=True):
         #constants for server connection
         self.IoT_protocol_name = "Triton"
         self.aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
@@ -86,6 +87,9 @@ class TritonClient():
         # Tells if Triton was manually set to be on
         self.manual = False
         self.pump_control_on=False
+
+        #set to true if using conduction with our testing setup
+        self.testing=testing
 
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
@@ -231,7 +235,52 @@ class TritonClient():
         #different bins.
         #starts at highest temp, goes down.
         #first number is off time, second is on time
+        t=self.current_temp #F
+        s=self.current_wind_speed #mph
 
+        diameter=.0127
+        density_air=1.25
+        visc_air=1.81*10**-5
+        Re_air=density_air*s*.6/2.237*diameter/visc_air
+        cp_air=1.005*10**3
+        k_air=25.36*10**-3
+        Pr=visc_air*cp_air/k_air
+        Nu=0.3+( .62 * Re_air**(1/2) * Pr**(1/3) )/( (1+(0.4/Pr)**(2/3))**(1/4) )
+        hair=Nu*k_air/diameter
+        water_density=1000
+
+        t_freeze=0
+        t_initial=7
+        t_celc=(t-32)*5/9
+
+        k_water=0.58
+        k_ice=2.18
+        k_avg=(k_water+k_ice)/2
+
+        exp_length=0.15 #exposed piping length
+        volume=pi*(diameter/2)**2 * exp_length
+        area=pi*diameter*exp_length
+        c=4200
+        l=334*1000
+        density_ice=930
+
+        if self.testing:
+            #testing, then do conduction
+            tau=water_density*volume*c/(area/2*(k_water/diameter))
+            t1=math.log((t_initial-t_celc)/(t_freeze-t_celc))*tau
+            t2=l*density_ice*diameter**2 / (k_avg*-t_celc)
+        else:
+            #not testing, do convection
+            tau=water_density*volume*c/(area/2*hair)
+            t1=math.log((t_initial-t_celc)/(t_freeze-t_celc))*tau
+            t2=l*density_ice*diameter/(hair*-t_celc)
+        time_freeze=(t1+t2)/60 #total time to freeze in minutes
+        time_freeze=.85*time_freeze #adds safety factor
+
+        self.time=time_freeze
+
+        '''
+        #below is not equation, just bins
         bins={
             "0":(300,15),#30>T>25 (all temps in F, times in minutes)
             "1":(180,15),#25>T>20
@@ -243,8 +292,7 @@ class TritonClient():
         }
         bin_max=6
 
-        t=self.current_temp
-        s=self.current_wind_speed
+
         bin=None
 
         #account for temp
@@ -286,3 +334,4 @@ class TritonClient():
             bin=bin_max
 
         self.times=bins[str(bin)]
+        '''
