@@ -180,7 +180,7 @@ if __name__ == '__main__':
                     'ca-cert':'Absolute path to aws ca-certificate',
                     'private-key': 'Absolute path to aws private key',
                     'cert': 'Absolute path to aws certifcate',
-                    'coordinates': {'long': None,'lat': None],
+                    'coordinates': {'long': None,'lat': None},
                     'path-to-config': config_path }
 
         with open(config_path, 'w', encoding='utf-8') as config_file:

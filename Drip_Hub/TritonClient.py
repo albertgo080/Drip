@@ -47,6 +47,10 @@ class TritonClient():
         self.ca = config['ca-cert']
         self.private = config['private-key']
         self.cert = config['cert']
+        
+        # self.ca = "/usr/local/share/ca-certificates/aws.crt"
+        # self.private = "/home/pi/66223fe9da-private.pem.key"
+        # self.cert = "/home/pi/66223fe9da-certificate.pem.crt"
         #end aws server constants
 
         self.config_path = config['path-to-config']
