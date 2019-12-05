@@ -154,7 +154,7 @@ def main(args):
     config_path = main_path+'/'+config_filename
 
     # Make sure config file is present
-    if not os.path.isfile('config.json'):
+    if not os.path.isfile(config_path):
         logger.warning('No configuration file. Creating file')
 
         # Create blank configuration file
