@@ -17,9 +17,9 @@ import argparse
 import logging
 
 class TritonHub():
-    def __init__(self, client_name="Triton", off_interval=4, \
-                    on_interval=4, num_pump_intervals=2, check_interval=1, threshold_temp=32, testing=True):
 
+    def __init__(self, config, client_name="Triton", off_interval=4, \
+                    on_interval=4, num_pump_intervals=2, check_interval=1, threshold_temp=32, testing=True):
          # ID of system as appears on server
         self.client_name = client_name
 
@@ -44,7 +44,7 @@ class TritonHub():
 
 
         # Create MQQT and weather object
-        self.client = TritonClient(self.client_name, testing=self.testing)
+        self.client = TritonClient(config, self.client_name, testing=self.testing)
 
         # Create Pump object
         self.pump = Pump(self.pump_channel)
@@ -166,7 +166,34 @@ if __name__ == '__main__':
 
     logger = logging.getLogger(__name__)
 
-    Hub = TritonHub("Triton-Zero", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
+    # Get path to main.py script
+    main_path = os.path.dirname(os.path.abspath(__file__))
+    config_filename = 'config.json'
+    config_path = main_path+'/'+config_filename
+
+    # Make sure config file is present
+    if not os.path.isfile('config.json'):
+        logger.warning('No configuration file. Creating file')
+
+        # Create blank configuration file
+        config = {'aws_endpoint':'Add AWS endpoint address', 
+                    'ca-cert':'Absolute path to aws ca-certificate',
+                    'private-key': 'Absolute path to aws private key',
+                    'cert': 'Absolute path to aws certifcate',
+                    'coordinates': {'long': None,'lat': None],
+                    'path-to-config': config_path }
+
+        with open(config_path, 'w', encoding='utf-8') as config_file:
+            json.dump(config, config_file, ensure_ascii=False, indent=4)
+        logger.info("Created blank configuration file. Please fill out with information in 'config.json' and rerun script")
+        return
+    else:
+        # Given the file exists, load, and check for coordinates
+        with open(config_path, 'r', encoding='utf-8') as config_file:
+            config = json.load(config_file)
+            logger.info('Using previous configuration location: %f long, %f lat', config['coordinates']['long'], config['coordinates']['lat'])
+
+    Hub = TritonHub(config, "Triton-Zero", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
 
     # run Triton until it is interrupted once server is setup
     try:
