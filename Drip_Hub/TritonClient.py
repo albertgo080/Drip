@@ -210,10 +210,11 @@ class TritonClient():
         temps = [period["temperature"] for period in props["periods"]]
 
         #now do wind speed
-        speeds = [period["windSpeed"] for period in props["periods"]]
+        speeds = [int(period["windSpeed"].split()[0]) for period in props["periods"]]
 
         current_temp = temps[0]
         current_wind_speed=speeds[0]
+        print(current_wind_speed)
         self.current_temp=current_temp
         self.current_wind_speed=current_wind_speed
         self.check_danger()
