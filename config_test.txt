@@ -1,0 +1,4 @@
+# self.aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
+# self.ca = "/usr/local/share/ca-certificates/aws.crt"
+# self.private = "/home/pi/66223fe9da-private.pem.key"
+# self.cert = "/home/pi/66223fe9da-certificate.pem.crt"

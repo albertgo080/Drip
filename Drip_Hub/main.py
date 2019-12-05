@@ -140,14 +140,7 @@ class TritonHub():
         logger.debug("After waiting for check interval: %f, diff: %f", time.time(), time.time()-starttime)
         '''
 
-# def main():
-#     '''
-#     Main function that calls the class
-#     '''
-#     logger.info('In main')
-#     foo = vHub()
-
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(description="Run the Triton systems")
     parser.add_argument('--off_interval', default=4, type=float, help='seconds that pump modulates off')
     parser.add_argument('--on_interval', default=4, type=float, help='seconds that pump modulates on')
@@ -209,3 +202,7 @@ if __name__ == '__main__':
     GPIO.cleanup()
 
     logger.info("Exited cleanly")
+
+
+if __name__ == '__main__':
+    main()

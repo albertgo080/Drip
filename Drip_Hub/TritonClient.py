@@ -28,19 +28,17 @@ class TritonClient():
         net_interface (string) - network interface to use (wifi vs ethernet), only tested on wifi now
         level1Temp, level2Temp, level3Temp (int) - the warning temperatures for this Triton install
     '''
-    def __init__(self, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0, testing=True):
+    def __init__(self, config, client_name='Triton', net_interface='wlan0', level1Temp=32, level2Temp=10, level3Temp=0, testing=True):
         #constants for server connection
         self.IoT_protocol_name = "Triton"
-        self.aws_iot_endpoint = "a2rpq57lrt0k72-ats.iot.us-east-2.amazonaws.com" # <random>.iot.<region>.amazonaws.com
+
+        self.aws_iot_endpoint = config['aws_endpoint']
         self.url = "https://{}".format(self.aws_iot_endpoint)
 
         self.ca = config['ca-cert']
         self.private = config['private-key']
         self.cert = config['cert']
-        
-        # self.ca = "/usr/local/share/ca-certificates/aws.crt"
-        # self.private = "/home/pi/66223fe9da-private.pem.key"
-        # self.cert = "/home/pi/66223fe9da-certificate.pem.crt"
+
         #end aws server constants
 
         # define script name for when it appears on server
