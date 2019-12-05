@@ -48,7 +48,7 @@ class TritonHub():
 
         # Create Pump object
         self.pump = Pump(self.pump_channel)
-        self.start_time=time.time()
+        self.start_time=-1
     def pump_on(self):
         GPIO.output(self.led_green, GPIO.HIGH) #turn green led on
         self.pump.pump_on()
@@ -103,8 +103,8 @@ class TritonHub():
                 self.pump_off()
                 self.client.active=0
         else:
-            if ((time.time()-self.start_time)>self.cycle_length):
-                if self.which_cycle > self.cycle_num:
+            if ((time.time()-self.start_time)>self.cycle_length or self.start_time==-1):
+                if self.which_cycle > self.cycle_num or self.start_time==-1 :
                     #only update after 4 cycles (so an hour)
                     self.temperature = self.client.get_weather_data()
                     self.get_cutoff()
