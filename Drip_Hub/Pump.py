@@ -23,13 +23,13 @@ class Pump():
     def pump_on(self):
         GPIO.output(self.channel, GPIO.HIGH) #turn pump on
         self.pump_status = True
-        logging.debug("Pump on")
+        # logging.debug("Pump on")
         return
     
     def pump_off(self):
         GPIO.output(self.channel, GPIO.LOW)
         self.pump_status = False
-        logging.debug("Pump off")
+        # logging.debug("Pump off")
         return
 
 if __name__ == "__main__":

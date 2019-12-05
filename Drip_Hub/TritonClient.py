@@ -123,7 +123,7 @@ class TritonClient():
         self.longitude = location[1]
         self.setup=True
         logger.debug("Setup has been completed")
-        logger.debug("Latitude: %s, Longitude: %s", self.latitude, self.longitude)
+        logger.debug("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
         try:
             self.temperature = self.get_weather_data()
         except KeyError:
@@ -180,7 +180,7 @@ class TritonClient():
         initial = requests.get(url).json()
 
         # Get new URL for weather at specific coordinates
-        logger.debug("Dict one: %s",str(dict_one))
+        # logger.debug("Dict one: %s",str(dict_one))
         try:
             url = initial["properties"]["forecastHourly"]
             logger.debug("Url: %s", url)
@@ -192,7 +192,7 @@ class TritonClient():
 
         # do again but with new url
         initial = requests.get(url).json()
-        logger.debug("Dict one 2: %s", str(dict_one))
+        # logger.debug("Dict one 2: %s", str(dict_one))
         try:
             props = initial["properties"]
             logger.debug("Props: %s", str(props))
@@ -201,7 +201,7 @@ class TritonClient():
             err = KeyError("Location given does produce dict with a 'properties key'")
             raise err
 
-        logger.debug("Successfully called weather API")
+        logger.info("Successfully called weather API")
 
         #get temp data
         temps = [period["temperature"] for period in props["periods"]]

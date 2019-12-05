@@ -184,7 +184,10 @@ def main():
         # Given the file exists, load, and check for coordinates
         with open(config_path, 'r', encoding='utf-8') as config_file:
             config = json.load(config_file)
-            logger.info('Using previous configuration location: %f long, %f lat', config['coordinates']['long'], config['coordinates']['lat'])
+            if config['coordinates']['long'] is not None:
+                logger.info('Using previous configuration location: %f long, %f lat', config['coordinates']['long'], config['coordinates']['lat'])
+            else:
+                logger.info('Previous coordinates not set')
 
     Hub = TritonHub(config, "Triton-Zero", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
 
