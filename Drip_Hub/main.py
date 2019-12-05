@@ -15,8 +15,6 @@ import json
 import argparse
 
 import logging
-logger = logging.getLogger(__name__)
-
 
 class TritonHub():
 
@@ -208,4 +206,6 @@ def main():
 
 
 if __name__ == '__main__':
+    logger = logging.getLogger(__name__)
     main()
+    

@@ -127,8 +127,8 @@ class TritonClient():
         self.latitude = location[0]
         self.longitude = location[1]
         self.setup=True
-        logger.debug("Setup has been completed")
-        logger.debug("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
+        logger.debug("Setup has been completed in location message")
+        logger.info("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
         try:
             self.temperature = self.get_weather_data()
         except KeyError:
