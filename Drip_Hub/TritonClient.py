@@ -259,8 +259,8 @@ class TritonClient():
         k_avg=(k_water+k_ice)/2
 
         exp_length=0.15 #exposed piping length
-        volume=pi*(diameter/2)**2 * exp_length
-        area=pi*diameter*exp_length
+        volume=math.pi*(diameter/2)**2 * exp_length
+        area=math.pi*diameter*exp_length
         c=4200
         l=334*1000
         density_ice=930
