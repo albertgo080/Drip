@@ -97,21 +97,25 @@ class TritonHub():
 
         if self.client.manual:
             if self.client.pump_control_on:
-                logger.debug("Manual on: Pump on")
+                logger.info("Manual on: Pump on")
                 self.pump_on()
                 self.client.active = 1
             else:
-                logger.debug("Manual on: Pump off")
+                logger.info("Manual on: Pump off")
                 self.pump_off()
                 self.client.active=0
         else:
-            if ((time.time()-self.start_time)>self.cycle_length or self.start_time==-1):
-                if self.which_cycle > self.cycle_num or self.start_time==-1 :
+            if ((time.time()-self.start_time)>self.cycle_length or self.client.changed):
+                print (self.client.changed)
+                print (self.which_cycle)
+                print(self.cycle_num)
+                if self.which_cycle > self.cycle_num or self.client.changed:
                     logger.info("Updating weather and bins")
                     #only update after 4 cycles (so an hour)
                     self.temperature = self.client.get_weather_data()
                     self.get_cutoff()
                     self.which_cycle=1
+                    self.client.changed=False
                 else:
                     logger.info("Remaining cycles. No weather update needed")
                     self.which_cycle+=1
@@ -175,11 +179,12 @@ def main(args):
             config = json.load(config_file)
             if config['coordinates']['long'] is not None:
                 logger.info('Using previous configuration location: %f long, %f lat', config['coordinates']['long'], config['coordinates']['lat'])
+                coords=True
             else:
                 logger.info('Previous coordinates not set')
-
+                coords=False
     Hub = TritonHub(config, "Triton-Zero", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
-
+    Hub.client.setup=coords #sets setup to true if lat and long are already present
     # run Triton until it is interrupted once server is setup
     try:
         while True:

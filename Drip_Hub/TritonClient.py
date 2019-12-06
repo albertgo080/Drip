@@ -67,8 +67,8 @@ class TritonClient():
         logger.debug("Location topic: %s", self.client_name+'/Location')
         self.mqtt_client.message_callback_add(self.client_name + '/Startup', self.on_message_startup)
         self.mqtt_client.message_callback_add(self.client_name + '/Manual', self.on_message_manual)
+        self.mqtt_client.message_callback_add(self.client_name + '/Pump', self.on_message_pump)
         self.mqtt_client.on_message = self.on_message
-
         #connect to aws iot (DA CLOUD)
         self.mqtt_client.connect(self.aws_iot_endpoint, port=8883)
 
@@ -96,6 +96,8 @@ class TritonClient():
 
         #set to true if using conduction with our testing setup
         self.testing=testing
+
+        self.changed=True
 
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
@@ -158,6 +160,7 @@ class TritonClient():
         except KeyError:
             logger.error("Could not get weather data for given long/lat. Temp staying the same")
         logger.debug("Temperature: %f", self.temperature[0])
+        self.changed=True #telling main that location has changed so that the cycle will be interuppted
 
     def on_message_startup(self, client, userdata, msg):
         '''
@@ -266,7 +269,7 @@ class TritonClient():
         t=self.current_temp #F
         s=self.current_wind_speed #mph
         if t>=30:
-            self.danger="None"
+            self.danger="NO"
             self.active=0
             self.time=1000
             return
@@ -284,7 +287,7 @@ class TritonClient():
         water_density=1000
 
         t_freeze=0
-        t_initial=7
+        t_initial=3.5
         t_celc=(t-32)*5/9
         k_water=0.58
         k_ice=2.18
@@ -306,9 +309,14 @@ class TritonClient():
             #not testing, do convection
             tau=water_density*volume*c/(area/2*hair)
             t1=math.log((t_initial-t_celc)/(t_freeze-t_celc))*tau
-            t2=l*density_ice*diameter/(hair*-t_celc)
+            t2=l*density_ice*diameter/(hair*-t_celc)/2
         time_freeze=(t1+t2)/60 #total time to freeze in minutes
-        time_freeze=.85*time_freeze #adds safety factor
+        time_freeze=.8*time_freeze #adds safety factor
 
         self.time=time_freeze
-        self.danger="Medium"
+        if self.time < 30:
+            self.danger="HIGH"
+        elif self.time < 90:
+            self.danger="MEDIUM"
+        else: 
+            self.danger="LOW"
