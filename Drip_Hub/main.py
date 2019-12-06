@@ -184,7 +184,9 @@ def main(args):
                 logger.info('Previous coordinates not set')
                 coords=False
     Hub = TritonHub(config, "Triton-Zero", args.off_interval, args.on_interval, args.num_intervals, args.check_interval, args.threshold_temp)
-    Hub.client.setup=coords #sets setup to true if lat and long are already present
+    if coords:
+        Hub.client.setup=coords #sets setup to true if lat and long are already present
+        Hub.client.get_weather_data()
     # run Triton until it is interrupted once server is setup
     try:
         while True:

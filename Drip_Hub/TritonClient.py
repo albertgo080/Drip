@@ -170,7 +170,7 @@ class TritonClient():
         Also is called when someone hits the refresh button on the app
         '''
         client.publish(self.client_name + "/Active", self.active)
-        client.publish(self.client_name + "/Temperature",str(self.temperature[0]))
+        client.publish(self.client_name + "/Temperature",str(self.current_temp))
         client.publish(self.client_name + "/Danger", str(self.danger))
         client.publish(self.client_name + "/Wind", self.current_wind_speed)
         logger.debug("startup has been called")
