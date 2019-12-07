@@ -9,6 +9,8 @@ import os
 from Pump import Pump
 from TritonClient import TritonClient
 
+from StatusLED import StatusLED
+
 import requests
 import json
 
@@ -42,6 +44,7 @@ class TritonHub():
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(self.led_green, GPIO.OUT)
 
+        self.status_led = StatusLED()
 
         # Create MQQT and weather object
         self.client = TritonClient(config, self.client_name, testing=self.testing)
@@ -52,13 +55,13 @@ class TritonHub():
     def pump_on(self):
         GPIO.output(self.led_green, GPIO.HIGH) #turn green led on
         self.pump.pump_on()
-        logger.debug("Pump and LED on")
+        # logger.debug("Pump and LED on")
         return
 
     def pump_off(self):
         self.pump.pump_off()
         GPIO.output(self.led_green, GPIO.LOW) #turn green led off
-        logger.debug("Pump and LED off")
+        # logger.debug("Pump and LED off")
         return
 
     def modulate_pump(self):
@@ -95,6 +98,10 @@ class TritonHub():
         x, be off.
         '''
 
+        self.status_led.color1()
+        time.sleep(0.1)
+        self.status_led.color2()
+
         if self.client.manual:
             if self.client.pump_control_on:
                 logger.info("Manual on: Pump on")
@@ -122,10 +129,10 @@ class TritonHub():
                 self.start_time = time.time()
 
             if ( (time.time() - self.start_time) < self.cutoff and self.client.active):
-                logger.info("Turning pump on")
+                # logger.info("Turning pump on")
                 self.pump_on()
             else:
-                logger.info("Turning pump off")
+                # logger.info("Turning pump off")
                 self.pump_off()
 
                 '''
