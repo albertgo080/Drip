@@ -83,7 +83,7 @@ class TritonClient():
         logger.debug("Initialized TritonClient with %f long, %f lat", self.longitude, self.latitude)
 
         # Defining variables that the app subscribes to - THESE ARE DUMMY VARIABLES
-        self.temperature = [50,0]
+        self.temps = [50,0]
         self.active      = 0
         self.danger      = 'None'
 
@@ -150,8 +150,6 @@ class TritonClient():
         self.latitude = float(location[0])
         self.longitude = float(location[1])
         # Update config file in case script fails and will restart with old location
-        self.update_config_location(self.longitude, self.latitude)
-        self.setup=True
         logger.debug("Setup has been completed")
         logger.info("Latitude: %f, Longitude: %f", self.latitude, self.longitude)
 
@@ -159,6 +157,8 @@ class TritonClient():
             self.temperature = self.get_weather_data()
         except KeyError:
             logger.error("Could not get weather data for given long/lat. Temp staying the same")
+            self.update_config_location(self.longitude, self.latitude)
+        self.setup=True
         logger.debug("Temperature: %f", self.temperature[0])
         self.changed=True #telling main that location has changed so that the cycle will be interuppted
 
@@ -210,7 +210,9 @@ class TritonClient():
         logger.debug("Getting weather data!")
         #first check if we have wifi at all
         try:
-            answer=requests.get("google.com")
+            # define url that takes latitiude and longitude variables
+            url = 'https://api.weather.gov/points/' + str(self.latitude) + ',' + str(self.longitude)
+            dict_one = requests.get(url).json()
         except:
             logger.info("No Wifi, using cached data")
             #get rid of first element, set currents and continue
@@ -220,10 +222,6 @@ class TritonClient():
             self.current_wind_speed=self.speeds[0]
             self.check_danger()
             return self.temps.copy()
-        
-        # define url that takes latitiude and longitude variables
-        url = 'https://api.weather.gov/points/' + str(self.latitude) + ',' + str(self.longitude)
-        dict_one = requests.get(url).json()
 
         # Get new URL for weather at specific coordinates
         # logger.debug("Dict one: %s",str(dict_one))
@@ -319,7 +317,7 @@ class TritonClient():
             #testing, then do conduction
             tau=water_density*volume*c/(area/2*(k_water/diameter))
             t1=math.log((t_initial-t_celc)/(t_freeze-t_celc))*tau
-            t2=l*density_ice*diameter**2 / (k_avg*-t_celc)
+            t2=l*density_ice*diameter**2 / (k_avg*-t_celc)/2
         else:
             #not testing, do convection
             tau=water_density*volume*c/(area/2*hair)
