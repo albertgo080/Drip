@@ -31,7 +31,9 @@ chmod +x /home/$BASEUSR/Drip/Drip_Hub/run.sh
 # Make system start up file
 
 sudo -E sh -c 'echo "[Unit]
-Description=Starts the triton system
+Description=the triton system
+After=network.target network-online.target NetworkManager.service
+Wants=network-online.target
 
 [Service]
 WorkingDirectory=/home/$BASEUSR
@@ -42,9 +44,11 @@ ExecStart=/home/$BASEUSR/triton
 [Install]
 WantedBy=multi-user.target" > /etc/systemd/system/triton.service'
 
+sudo systemctl daemon-reload
+
 sudo systemctl enable triton
+
 
 echo 'Created and enabled Triton start up service'
 
 echo 'Run sudo systemctl start triton to start the hub without restarting'
-

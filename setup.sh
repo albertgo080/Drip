@@ -28,7 +28,7 @@ python3 -m venv $TOPDIR/drip_env
 source $TOPDIR/drip_env/bin/activate
 
 echo "Installing Drip Hub dependencies"
-pip3 install requests bs4 netifaces RPi.GPIO
+pip3 install requests netifaces RPi.GPIO
 
 pip3 install paho-mqtt
 # MQTT needs to be root to not throw errors
