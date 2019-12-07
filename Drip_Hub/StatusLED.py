@@ -11,18 +11,26 @@ logger = logging.getLogger(__name__)
 
 class StatusLED():
     def __init__(self, pin = 6):
-        self.pixels = neopixel.NeoPixel(board.D18, 2)
+        self.pixels = neopixel.NeoPixel(board.D18, 4)
 
     def color1(self):
-        self.pixels[0] = (255, 0, 0)
-        self.pixels[1] = (255, 255, 0)
+        color=(0,0,255) #blue
+        #logger.info("color 1")
+        self.pixels[0] = color
+        self.pixels[1] = color
+        self.pixels[2] = color
+        self.pixels[3] = color
     
     def color2(self):
-        self.pixels[0] = (255, 255, 0)
-        self.pixels[1] = (255, 0, 0)
-
+        color=(255,0,255) #purple
+        #logger.info("color 2")
+        self.pixels[0] = color
+        self.pixels[1] = color
+        self.pixels[2] = color
+        self.pixels[3] = color
+'''
 if __name__=="__main__":
-    pixels = neopixel.NeoPixel(board.D18, 2)
+    pixels = neopixel.NeoPixel(board.D10, 2)
 
     try:
         while True:
@@ -34,3 +42,4 @@ if __name__=="__main__":
             time.sleep(0.4)
     except KeyboardInterrupt:
         print("Exiting")
+'''

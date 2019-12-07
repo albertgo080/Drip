@@ -53,15 +53,17 @@ class TritonHub():
         self.pump = Pump(self.pump_channel)
         self.start_time=-1
     def pump_on(self):
-        GPIO.output(self.led_green, GPIO.HIGH) #turn green led on
+        #GPIO.output(self.led_green, GPIO.HIGH) #turn green led on
         self.pump.pump_on()
         # logger.debug("Pump and LED on")
+        self.status_led.color2()
         return
 
     def pump_off(self):
         self.pump.pump_off()
-        GPIO.output(self.led_green, GPIO.LOW) #turn green led off
+        #GPIO.output(self.led_green, GPIO.LOW) #turn green led off
         # logger.debug("Pump and LED off")
+        self.status_led.color1()
         return
 
     def modulate_pump(self):
@@ -110,10 +112,6 @@ class TritonHub():
         less than x minutes since last update, be on. If time is greater than
         x, be off.
         '''
-
-        self.status_led.color1()
-        time.sleep(0.1)
-        self.status_led.color2()
 
         if self.client.manual:
             if self.client.pump_control_on:
