@@ -35,7 +35,7 @@ class TritonHub():
         self.cycle_length       = 15*60 # 15 minutes
         self.cycle_num          = 4 #4 * 15 minutes = 1 hour
         self.which_cycle        = 1 #to count which of the four cycles
-        self.pump_channel       = 17 # for pump relay
+        self.pump_channel       = 5 # for pump relay
         self.led_green          = 16 # for status relay
         self.testing            = testing
         #########################################
