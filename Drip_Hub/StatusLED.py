@@ -14,5 +14,14 @@ logger = logging.getLogger(__name__)
 
 if __name__=="__main__":
     pixels = neopixel.NeoPixel(board.D18, 2)
-    pixels[0] = (255, 0, 0)
-    pixels[1] = (255, 255, 0)
+    try:
+        while True:
+            pixels[0] = (255, 0, 0)
+            pixels[1] = (255, 255, 0)
+            time.sleep(0.4)
+            pixels[0] = (255, 255, 0)
+            pixels[1] = (255, 0, 0)
+            time.sleep(0.4)
+    except KeyboardInterrupt:
+        print("Exiting")
+        break
