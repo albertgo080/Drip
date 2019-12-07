@@ -208,6 +208,19 @@ class TritonClient():
         Returns a list of temperatures fro the next 150 hours
         '''
         logger.debug("Getting weather data!")
+        #first check if we have wifi at all
+        try:
+            answer=requests.get("google.com")
+        except:
+            logger.info("No Wifi, using cached data")
+            #get rid of first element, set currents and continue
+            self.temps.pop(0)
+            self.speeds.pop(0)
+            self.current_temp=self.temps[0]
+            self.current_wind_speed=self.speeds[0]
+            self.check_danger()
+            return self.temps.copy()
+        
         # define url that takes latitiude and longitude variables
         url = 'https://api.weather.gov/points/' + str(self.latitude) + ',' + str(self.longitude)
         dict_one = requests.get(url).json()
@@ -244,7 +257,9 @@ class TritonClient():
 
         current_temp = temps[0]
         current_wind_speed=speeds[0]
-
+        
+        self.temps=temps
+        self.speeds=speeds
         self.current_temp=current_temp
         self.current_wind_speed=current_wind_speed
         self.check_danger()
