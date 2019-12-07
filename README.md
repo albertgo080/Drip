@@ -61,7 +61,20 @@ cd ~/Drip
 
 ./startup_setup.sh
 
+# Setup of PI to work with LEDs
+sudo sh -c "echo 'blacklist snd_bcm2835' >> /etc/modprobe.d/snd-blacklist.conf"
 ```
+
+Edit configuration file:
+
+```bash
+sudo nano /boot/config.txt
+
+# Comment out the line
+# dtparam=audio=on
+```
+
+Now reboot the system
 
 
 

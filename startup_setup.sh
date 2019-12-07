@@ -22,9 +22,9 @@ echo 'Created hub start up script'
 # Make run file
 
 echo "#!/bin/bash
-source /home/$BASEUSR/Drip/drip_env/bin/activate
+echo 'Must be run with sudo'
 python3 /home/$BASEUSR/Drip/Drip_Hub/main.py
-deactivate" > /home/$BASEUSR/Drip/Drip_Hub/run.sh
+" > /home/$BASEUSR/Drip/Drip_Hub/run.sh
 
 chmod +x /home/$BASEUSR/Drip/Drip_Hub/run.sh
 

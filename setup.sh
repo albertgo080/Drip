@@ -16,26 +16,30 @@ echo "Top dir: $TOPDIR"
 # Installing dependencies
 sudo apt install git python3-pip python3-venv libdbus-1-dev libglib2.0-dev virtualenv -y
 
+sudo apt-get install gcc make build-essential python-dev git scons swig -y
+
 # Removing previous virtual env if it exists
 # echo "Removing "rm -r $TOPDIR/drip_env""
 
 # rm -rf $TOPDIR/drip_env
 
-echo 'Setting up virtual environment for Drip Hub'
+# echo 'Setting up virtual environment for Drip Hub'
 
-python3 -m venv $TOPDIR/drip_env
+# python3 -m venv $TOPDIR/drip_env
 
-source $TOPDIR/drip_env/bin/activate
+# source $TOPDIR/drip_env/bin/activate
 
 echo "Installing Drip Hub dependencies"
-pip3 install requests netifaces RPi.GPIO
+sudo pip3 install requests netifaces RPi.GPIO paho-mqtt rpi_ws281x adafruit-circuitpython-neopixel
 
-pip3 install paho-mqtt
 # MQTT needs to be root to not throw errors
 # sudo -H pip3 install paho-mqtt
 
-deactivate
+## TODO: Fix the LED rpi_ws281x so it can be run without sudo (and thus use the virtual env)
 
-echo "Finished creating environment"
+
+# deactivate
+
+# echo "Finished creating environment"
 
 echo "Continue hub setup by installing network-manager in the next step"
