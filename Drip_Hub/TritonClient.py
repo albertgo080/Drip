@@ -68,6 +68,7 @@ class TritonClient():
         self.mqtt_client.message_callback_add(self.client_name + '/Startup', self.on_message_startup)
         self.mqtt_client.message_callback_add(self.client_name + '/Manual', self.on_message_manual)
         self.mqtt_client.message_callback_add(self.client_name + '/Pump', self.on_message_pump)
+        self.mqtt_client.message_callback_add(self.client_name + '/Presentation', self.on_message_presentation)
         self.mqtt_client.on_message = self.on_message
         #connect to aws iot (DA CLOUD)
         self.mqtt_client.connect(self.aws_iot_endpoint, port=8883)
@@ -98,6 +99,7 @@ class TritonClient():
         self.testing=testing
 
         self.changed=True
+        self.presentation=False
 
         # Causes mqtt to run continuously
         self.mqtt_client.loop_start()
@@ -187,7 +189,16 @@ class TritonClient():
         else:
             self.manual = False
         logger.debug("Manual Settings: %d", self.manual)
-
+    
+    def on_message_presentation(self,client,userdata,msg):
+        message=msg.payload.decode(encoding='UTF-8')
+        if message=="on":
+            self.presentation=True
+            logger.info("In Presentation Mode")
+        else:
+            self.presentation=False
+            logger.info("Out of Presentation Mode")
+        self.changed=True 
     def on_message_pump(self,client,userdata,msg):
         '''
         Callback function for Triton/Pump topic
@@ -276,6 +287,11 @@ class TritonClient():
         return  ssl_context
 
     def check_danger(self):
+        if self.presentation: #bypass calcs if in presentation mode
+            self.time=9.12
+            self.danger="HIGH"
+            self.active=1
+            return
         #different bins.
         #starts at highest temp, goes down.
         #first number is off time, second is on time
