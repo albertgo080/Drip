@@ -86,7 +86,20 @@ class TritonHub():
 
     def get_cutoff(self):
         off=self.client.time
-        on=15
+        if self.testing: #use conduction equations. 6 min on
+            on=6
+        else: #use convection equations. on = 20 (?)
+            on=20
+        if (on+off)>60: #scale down to hour long cycle
+            self.cycle_length=60*60
+            self.cycle_num=1
+        elif (on+off)>30: #scale down to 30 min cycle
+            self.cycle_length=30*60
+            self.cycle_num=2
+        else: #scale to 15 min cycle
+            self.cycle_length=15*60
+            self.cycle_num=4
+
         self.cutoff=on/(off+on)*self.cycle_length
 
     def run_cycle(self):
@@ -113,9 +126,6 @@ class TritonHub():
                 self.client.active=0
         else:
             if ((time.time()-self.start_time)>self.cycle_length or self.client.changed):
-                print (self.client.changed)
-                print (self.which_cycle)
-                print(self.cycle_num)
                 if self.which_cycle > self.cycle_num or self.client.changed:
                     logger.info("Updating weather and bins")
                     #only update after 4 cycles (so an hour)
