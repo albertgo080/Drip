@@ -1,6 +1,6 @@
 ## Raspi Zero Install Instructions
 
-Flash Raspbian Lite to SD card as noted here (add link)
+Flash Raspbian Lite to SD card as shown in the official [installation guide](https://www.raspberrypi.org/documentation/installation/installing-images/README.md)
 
 Load up Pi
 
@@ -10,7 +10,7 @@ Note that a lot of these commands take that time as the Pi Zero is slower than t
 sudo raspi-config
 ```
 
-Go to localization settings and adjust keyboard to US version as here (link).
+Go to localization settings and adjust keyboard to US version as [here](https://thepihut.com/blogs/raspberry-pi-tutorials/25556740-changing-the-raspberry-pi-keyboard-layout).
 
 Change password to non-default pi password
 
@@ -23,7 +23,16 @@ sudo systemctl enable ssh
 sudo systemctl start ssh
 ```
 
-Set up AWS certifcations and IOT (albert add here)
+### AWS Setup
+
+1) Log onto AWS, and go to IOT Core.
+2) Click "Manage", then in top right "Create" -> "Create Single Thing"
+3) Provide a uniquq name, and leave the rest of page unchanged.  Press "Next."
+4) Click "Create Certificate", and then down all the files.  Also click the CA Cert activation at the bottom.
+5) Attach a policy and select any of the existing policies. Register thing. (TODO: Clean up these)
+6) You should see your new "thing" on the home page.  Click on it, and you'll find the server address link.
+
+If you are doing these 6 steps on a separate computer, make sure transfer the files over.
 
 
 ## Automatic Setup
