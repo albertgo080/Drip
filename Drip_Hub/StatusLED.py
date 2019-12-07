@@ -34,4 +34,3 @@ if __name__=="__main__":
             time.sleep(0.4)
     except KeyboardInterrupt:
         print("Exiting")
-        break
