@@ -229,7 +229,7 @@ class TritonClient():
             #get rid of first element, set currents and continue
             self.temps.pop(0)
             self.speeds.pop(0)
-            self.current_temp=self.temps[0]
+            self.current_temp=self.temps[0]-4 #add safety factor
             self.current_wind_speed=self.speeds[0]
             self.check_danger()
             return self.temps.copy()
@@ -297,6 +297,9 @@ class TritonClient():
         #first number is off time, second is on time
         t=self.current_temp #F
         s=self.current_wind_speed #mph
+        if self.current_wind_speed==0:
+            s=0.5
+
         if t>=30:
             self.danger="NO"
             self.active=0
