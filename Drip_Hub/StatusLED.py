@@ -11,23 +11,28 @@ logger = logging.getLogger(__name__)
 
 class StatusLED():
     def __init__(self, pin = 6):
-        self.pixels = neopixel.NeoPixel(board.D18, 4)
+        self.num_pixels = 6
+        self.pixels = neopixel.NeoPixel(board.D18, self.num_pixels)
 
     def color1(self):
-        color=(0,0,255) #blue
+        brightness = 0.5
+        color=(0,0,127) #blue
         #logger.info("color 1")
-        self.pixels[0] = color
-        self.pixels[1] = color
-        self.pixels[2] = color
-        self.pixels[3] = color
+        self.pixels.fill(color)
+        #self.pixels[0] = color
+        #self.pixels[1] = color
+        #self.pixels[2] = color
+        #self.pixels[3] = color
     
     def color2(self):
-        color=(255,0,255) #purple
+        brightness = 0.5
+        color=(127,0,127) #purple
         #logger.info("color 2")
-        self.pixels[0] = color
-        self.pixels[1] = color
-        self.pixels[2] = color
-        self.pixels[3] = color
+        self.pixels.fill(color)
+        #self.pixels[0] = color
+        #self.pixels[1] = color
+        #self.pixels[2] = color
+        #self.pixels[3] = color
 '''
 if __name__=="__main__":
     pixels = neopixel.NeoPixel(board.D10, 2)
