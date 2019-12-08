@@ -69,6 +69,7 @@ class TritonClient():
         self.mqtt_client.message_callback_add(self.client_name + '/Manual', self.on_message_manual)
         self.mqtt_client.message_callback_add(self.client_name + '/Pump', self.on_message_pump)
         self.mqtt_client.message_callback_add(self.client_name + '/Presentation', self.on_message_presentation)
+        self.mqtt_client.message_callback_add(self.client_name + '/IP', self.on_message_ip)
         self.mqtt_client.on_message = self.on_message
         #connect to aws iot (DA CLOUD)
         self.mqtt_client.connect(self.aws_iot_endpoint, port=8883)
@@ -199,6 +200,15 @@ class TritonClient():
             self.presentation=False
             logger.info("Out of Presentation Mode")
         self.changed=True 
+    
+    def on_message_ip(self,client,userdata,msg):
+        message=msg.payload.decode(encoding='UTF-8')
+        if message!="on":
+            return
+        out=os.popen("ifconfig")
+        IP=out.read()
+        client.publish(self.client_name + "/IP",IP)
+
     def on_message_pump(self,client,userdata,msg):
         '''
         Callback function for Triton/Pump topic
