@@ -230,6 +230,9 @@ class TritonClient():
         '''
         logger.debug("Getting weather data!")
         #first check if we have wifi at all
+        if self.presentation:
+            self.check_danger()
+            return [0,0]
         try:
             # define url that takes latitiude and longitude variables
             url = 'https://api.weather.gov/points/' + str(self.latitude) + ',' + str(self.longitude)
