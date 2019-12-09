@@ -160,7 +160,7 @@ class TritonClient():
             self.temperature = self.get_weather_data()
         except KeyError:
             logger.error("Could not get weather data for given long/lat. Temp staying the same")
-            self.update_config_location(self.longitude, self.latitude)
+        self.update_config_location(self.longitude, self.latitude)
         self.setup=True
         logger.debug("Temperature: %f", self.temperature[0])
         self.changed=True #telling main that location has changed so that the cycle will be interuppted
